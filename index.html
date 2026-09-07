@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="text-slate-800 antialiased relative">
+    
+    <!-- Ambient Background Gradients -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-teal-200/40 blur-[100px]"></div>
+        <div class="absolute top-[20%] right-[-5%] w-[30%] h-[50%] rounded-full bg-emerald-200/40 blur-[120px]"></div>
+    </div>
+
+    <!-- Sticky Header -->
+    <header class="sticky top-0 z-50 glass-card border-b-0 border-white/40">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                    <i data-lucide="heart-handshake" class="w-5 h-5"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight text-slate-900">SSF Trust</span>
+            </div>
+            <a href="#donate-section" class="hidden md:inline-flex bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium px-5 py-2 rounded-full transition-all hover:scale-105">
+                Donate Now
+            </a>
+        </div>
+    </header>
+    
+    <main class="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+        
+        <!-- Left Column: Info & Stats -->
+        <div class="lg:col-span-7 space-y-8 animate-fade-in-up">
+            
+            <!-- Hero Image -->
+            <div class="relative group rounded-3xl overflow-hidden shadow-2xl">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent z-10"></div>
+                <img id="campaign-banner" class="w-full h-80 object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out bg-slate-200" alt="Campaign Banner">
+                <div class="absolute bottom-6 left-6 z-20">
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold rounded-full uppercase tracking-wider">Active Campaign</span>
+                </div>
+            </div>
+            
+            <!-- Title -->
+            <div class="animate-fade-in-up delay-100">
+                <h1 id="campaign-title" class="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-teal-900 to-emerald-800 mb-4 pb-2">
+                    Loading Campaign...
+                </h1>
+                <p id="campaign-desc" class="text-lg text-slate-600 leading-relaxed font-light"></p>
+            </div>
+
+            <!-- Progress Card -->
+            <div class="glass-card p-8 rounded-3xl animate-fade-in-up delay-200">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <p class="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-1">Total Raised</p>
+                        <h2 id="progress-text" class="text-4xl font-extrabold text-slate-900 tracking-tight">₹0</h2>
+                    </div>
+                    <div class="text-right">
+                        <span id="target-text" class="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">Goal: ₹0</span>
+                    </div>
+                </div>
+                
+                <div class="w-full bg-slate-200/50 rounded-full h-4 overflow-hidden mb-4 p-0.5 border border-white/50 shadow-inner">
+                    <div id="progress-bar" class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-emerald-400 to-teal-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: 0%"></div>
+                </div>
+                
+                <div class="flex items-center justify-between text-sm text-slate-500 font-medium">
+                    <p id="donors-count" class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full">
+                        <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i> <span>0 Supporters</span>
+                    </p>
+                    <p class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full text-emerald-700">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i> 100% Secure
+                    </p>
+                </div>
+            </div>
+
+            <!-- Donor Wall -->
+            <div class="animate-fade-in-up delay-300">
+                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+                    <i data-lucide="heart" class="w-5 h-5 text-rose-500 fill-rose-100"></i> Recent Supporters
+                </h3>
+                <div id="donor-wall" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Donors injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Form & Payment -->
+        <div id="donate-section" class="lg:col-span-5 space-y-6 animate-fade-in-up delay-200 relative">
+            
+            <!-- Sticky container for the form -->
+            <div class="sticky top-24 space-y-6">
+                <!-- Payment Info -->
+                <div class="glass-card p-6 rounded-3xl text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                    <h3 class="font-bold text-lg mb-1 text-slate-800">Zero-Fee Direct Transfer</h3>
+                    <p class="text-sm text-slate-500 mb-6 font-light">100% of your money goes to the cause.</p>
+                    
+                    <div class="bg-white p-3 rounded-2xl shadow-sm inline-block mb-4 border border-slate-100 transform hover:scale-105 transition-transform">
+                        <img id="qr-code" class="w-40 h-40 object-contain rounded-xl" alt="UPI QR Code">
+                    </div>
+                    
+                    <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2 pl-4 rounded-xl max-w-[260px] mx-auto hover:border-emerald-300 transition-colors">
+                        <code id="upi-id" class="text-sm font-semibold text-slate-700 tracking-wide"></code>
+                        <button id="copy-upi" class="p-2 bg-white hover:bg-emerald-50 rounded-lg text-emerald-600 shadow-sm border border-slate-100 transition-all hover:scale-105 active:scale-95 flex items-center gap-1 text-xs font-bold">
+                            <i data-lucide="copy" class="w-4 h-4"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Donation Form -->
+                <form id="donation-form" class="glass-card p-8 rounded-3xl space-y-5">
+                    <h3 class="font-bold text-xl mb-4 text-slate-800 flex items-center gap-2">
+                        <i data-lucide="receipt" class="w-5 h-5 text-emerald-600"></i> Log Donation
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Full Name</label>
+                            <input type="text" id="donor_name" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400" placeholder="John Doe">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Phone</label>
+                                <input type="tel" id="phone_number" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400" placeholder="9876543210">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Amount (₹)</label>
+                                <input type="number" id="amount" min="1" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400 font-semibold text-emerald-700" placeholder="5000">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">12-Digit UTR Ref</label>
+                            <input type="text" id="transaction_ref" required minlength="12" maxlength="12" class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400 font-mono tracking-widest" placeholder="312345678901">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Screenshot (Optional)</label>
+                            <input type="file" id="screenshot" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-wider file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 hover:file:text-slate-900 cursor-pointer premium-input p-1 rounded-xl">
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 pt-2">
+                        <input type="checkbox" id="donor_wants_public" checked class="mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300">
+                        <label for="donor_wants_public" class="text-sm text-slate-600 font-medium leading-tight">Display my name on the public supporter wall.</label>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 rounded-xl transition-all hover:-translate-y-0.5 shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] flex justify-center items-center gap-2 mt-4 text-base tracking-wide">
+                        <i data-lucide="send" class="w-5 h-5"></i> Submit for Verification
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
