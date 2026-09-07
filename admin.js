@@ -40,32 +40,47 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => await supabase.auth.signOut());
-
 // --- TAB NAVIGATION ---
-const tabs = {
-    overview: { btn: document.getElementById('nav-overview'), content: document.getElementById('tab-overview') },
-    verify: { btn: document.getElementById('nav-verify'), content: document.getElementById('tab-verify') },
-    settings: { btn: document.getElementById('nav-settings'), content: document.getElementById('tab-settings') }
-};
-
 function switchTab(activeKey) {
+    // Fetch elements dynamically to prevent null reference crashes
+    const tabs = {
+        overview: { btn: document.getElementById('nav-overview'), content: document.getElementById('tab-overview') },
+        verify: { btn: document.getElementById('nav-verify'), content: document.getElementById('tab-verify') },
+        settings: { btn: document.getElementById('nav-settings'), content: document.getElementById('tab-settings') }
+    };
+
     Object.keys(tabs).forEach(key => {
+        const tab = tabs[key];
         const isActive = key === activeKey;
-        tabs[key].content.classList.toggle('hidden', !isActive);
         
-        if (isActive) {
-            tabs[key].btn.className = 'w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium transition-all shadow-sm';
-            tabs[key].btn.querySelector('i').classList.add('text-emerald-400');
-        } else {
-            tabs[key].btn.className = 'w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-white font-medium transition-all text-slate-400';
-            tabs[key].btn.querySelector('i').classList.remove('text-emerald-400');
+        // Safely check if the content div exists before toggling classes
+        if (tab.content) {
+            tab.content.classList.toggle('hidden', !isActive);
+        }
+        
+        // Safely style the button if it exists
+        if (tab.btn) {
+            if (isActive) {
+                tab.btn.className = 'w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium transition-all shadow-sm';
+                const icon = tab.btn.querySelector('i');
+                if(icon) icon.classList.add('text-emerald-400');
+            } else {
+                tab.btn.className = 'w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 hover:text-white font-medium transition-all text-slate-400';
+                const icon = tab.btn.querySelector('i');
+                if(icon) icon.classList.remove('text-emerald-400');
+            }
         }
     });
 }
-tabs.overview.btn.addEventListener('click', () => switchTab('overview'));
-tabs.verify.btn.addEventListener('click', () => switchTab('verify'));
-tabs.settings.btn.addEventListener('click', () => switchTab('settings'));
 
+// Safely attach event listeners only if the buttons exist in the HTML
+const navOverview = document.getElementById('nav-overview');
+const navVerify = document.getElementById('nav-verify');
+const navSettings = document.getElementById('nav-settings');
+
+if (navOverview) navOverview.addEventListener('click', () => switchTab('overview'));
+if (navVerify) navVerify.addEventListener('click', () => switchTab('verify'));
+if (navSettings) navSettings.addEventListener('click', () => switchTab('settings'));
 // --- DATA & ANALYTICS ---
 document.getElementById('analytics-timeframe').addEventListener('change', updateAnalytics);
 
