@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campaign Dashboard</title>
+    <title>SSF Trust - Educational Drive</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="text-slate-800 antialiased relative">
+<body class="text-slate-800 antialiased relative bg-slate-50 overflow-x-hidden">
     
     <!-- Ambient Background Gradients -->
     <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
@@ -27,7 +27,7 @@
                 </div>
                 <span class="font-bold text-xl tracking-tight text-slate-900">SSF Trust</span>
             </div>
-            <a href="#donate-section" class="hidden md:inline-flex bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium px-5 py-2 rounded-full transition-all hover:scale-105">
+            <a href="#donate-section" class="hidden md:inline-flex bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium px-5 py-2 rounded-full transition-all hover:scale-105 shadow-md">
                 Donate Now
             </a>
         </div>
@@ -35,15 +35,15 @@
     
     <main class="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
         
-        <!-- Left Column: Info & Stats -->
+        <!-- Left Column: Info, Stats & Wall -->
         <div class="lg:col-span-7 space-y-8 animate-fade-in-up">
             
             <!-- Hero Image -->
-            <div class="relative group rounded-3xl overflow-hidden shadow-2xl">
+            <div class="relative group rounded-3xl overflow-hidden shadow-2xl bg-slate-200 h-64 md:h-80">
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent z-10"></div>
-                <img id="campaign-banner" class="w-full h-80 object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out bg-slate-200" alt="Campaign Banner">
+                <img id="campaign-banner" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" alt="Campaign Banner">
                 <div class="absolute bottom-6 left-6 z-20">
-                    <span class="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold rounded-full uppercase tracking-wider">Active Campaign</span>
+                    <span class="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold rounded-full uppercase tracking-wider">Active Campaign</span>
                 </div>
             </div>
             
@@ -55,8 +55,25 @@
                 <p id="campaign-desc" class="text-lg text-slate-600 leading-relaxed font-light"></p>
             </div>
 
-            <!-- Progress Card -->
+            <!-- Progress Card with Timer -->
             <div class="glass-card p-8 rounded-3xl animate-fade-in-up delay-200">
+                
+                <!-- Countdown Timer -->
+                <div id="countdown-container" class="hidden mb-6 flex justify-center gap-4 text-center border-b border-slate-200/50 pb-6">
+                    <div class="bg-white/80 p-3 rounded-2xl w-24 shadow-sm border border-slate-100">
+                        <span id="timer-days" class="block text-3xl font-black text-emerald-600">00</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Days</span>
+                    </div>
+                    <div class="bg-white/80 p-3 rounded-2xl w-24 shadow-sm border border-slate-100">
+                        <span id="timer-hours" class="block text-3xl font-black text-emerald-600">00</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hours</span>
+                    </div>
+                    <div class="bg-white/80 p-3 rounded-2xl w-24 shadow-sm border border-slate-100">
+                        <span id="timer-mins" class="block text-3xl font-black text-emerald-600">00</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mins</span>
+                    </div>
+                </div>
+
                 <div class="flex justify-between items-end mb-4">
                     <div>
                         <p class="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-1">Total Raised</p>
@@ -72,36 +89,37 @@
                 </div>
                 
                 <div class="flex items-center justify-between text-sm text-slate-500 font-medium">
-                    <p id="donors-count" class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full">
+                    <p id="donors-count" class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full shadow-sm">
                         <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i> <span>0 Supporters</span>
                     </p>
-                    <p class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full text-emerald-700">
-                        <i data-lucide="trending-up" class="w-4 h-4"></i> 100% Secure
+                    <p class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full text-emerald-700 shadow-sm">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> 100% Secure
                     </p>
                 </div>
             </div>
 
             <!-- Donor Wall -->
             <div class="animate-fade-in-up delay-300">
-                <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
-                    <i data-lucide="heart" class="w-5 h-5 text-rose-500 fill-rose-100"></i> Recent Supporters
-                </h3>
-                <div id="donor-wall" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Donors injected here -->
+                <div class="flex items-center gap-6 border-b border-slate-200 mb-6">
+                    <button id="tab-recent" class="pb-3 text-lg font-bold border-b-2 border-emerald-500 text-emerald-700 transition-colors flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5"></i> Recent</button>
+                    <button id="tab-top" class="pb-3 text-lg font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-2"><i data-lucide="award" class="w-5 h-5"></i> Top Supporters</button>
+                </div>
+                
+                <div id="donor-wall" class="grid grid-cols-1 gap-4">
+                    <!-- Cards injected here via JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Form & Payment -->
+        <!-- Right Column: Payment Form -->
         <div id="donate-section" class="lg:col-span-5 space-y-6 animate-fade-in-up delay-200 relative">
-            
-            <!-- Sticky container for the form -->
             <div class="sticky top-24 space-y-6">
-                <!-- Payment Info -->
+                
+                <!-- Payment Instructions -->
                 <div class="glass-card p-6 rounded-3xl text-center relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
-                    <h3 class="font-bold text-lg mb-1 text-slate-800">Zero-Fee Direct Transfer</h3>
-                    <p class="text-sm text-slate-500 mb-6 font-light">100% of your money goes to the cause.</p>
+                    <h3 class="font-bold text-lg mb-1 text-slate-800">Direct Transfer (0% Fees)</h3>
+                    <p class="text-sm text-slate-500 mb-6 font-light">Your entire donation goes to the cause.</p>
                     
                     <div class="bg-white p-3 rounded-2xl shadow-sm inline-block mb-4 border border-slate-100 transform hover:scale-105 transition-transform">
                         <img id="qr-code" class="w-40 h-40 object-contain rounded-xl" alt="UPI QR Code">
@@ -118,7 +136,7 @@
                 <!-- Donation Form -->
                 <form id="donation-form" class="glass-card p-8 rounded-3xl space-y-5">
                     <h3 class="font-bold text-xl mb-4 text-slate-800 flex items-center gap-2">
-                        <i data-lucide="receipt" class="w-5 h-5 text-emerald-600"></i> Log Donation
+                        <i data-lucide="receipt" class="w-5 h-5 text-emerald-600"></i> Log Your Details
                     </h3>
                     
                     <div class="space-y-4">
@@ -134,7 +152,7 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Amount (₹)</label>
-                                <input type="number" id="amount" min="1" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400 font-semibold text-emerald-700" placeholder="5000">
+                                <input type="number" id="amount" min="1" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400 font-bold text-emerald-700" placeholder="5000">
                             </div>
                         </div>
                         
@@ -144,23 +162,51 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Screenshot (Optional)</label>
-                            <input type="file" id="screenshot" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-wider file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 hover:file:text-slate-900 cursor-pointer premium-input p-1 rounded-xl">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Support Message (Optional)</label>
+                            <textarea id="donor_message" rows="2" class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400" placeholder="Leave a message for the community..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Screenshot</label>
+                            <input type="file" id="screenshot" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-wider file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer premium-input p-1 rounded-xl">
+                            <p class="text-[10px] text-slate-400 mt-1">Image will be auto-compressed.</p>
                         </div>
                     </div>
 
                     <div class="flex items-start gap-3 pt-2">
-                        <input type="checkbox" id="donor_wants_public" checked class="mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300">
-                        <label for="donor_wants_public" class="text-sm text-slate-600 font-medium leading-tight">Display my name on the public supporter wall.</label>
+                        <input type="checkbox" id="donor_wants_public" checked class="mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
+                        <label for="donor_wants_public" class="text-sm text-slate-600 font-medium leading-tight">Display my name and message on the public wall.</label>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 rounded-xl transition-all hover:-translate-y-0.5 shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] flex justify-center items-center gap-2 mt-4 text-base tracking-wide">
+                    <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/30 flex justify-center items-center gap-2 mt-4 text-base tracking-wide">
                         <i data-lucide="send" class="w-5 h-5"></i> Submit for Verification
                     </button>
                 </form>
             </div>
         </div>
     </main>
+
+    <!-- Success Modal with WhatsApp Share -->
+    <div id="success-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl text-center relative overflow-hidden transform scale-95 transition-transform duration-300" id="success-modal-content">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+            
+            <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="check-circle" class="w-10 h-10 text-emerald-600"></i>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Thank You!</h2>
+            <p class="text-slate-500 mb-8 text-sm">Your donation is pending verification. Once the admin verifies the UTR, your name will appear on the wall.</p>
+            
+            <a id="wa-share-btn" target="_blank" class="w-full flex justify-center items-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-green-500/30 mb-3 hover:scale-105">
+                <i data-lucide="share-2" class="w-5 h-5"></i> Share on WhatsApp
+            </a>
+            
+            <button onclick="document.getElementById('success-modal').classList.add('hidden')" class="w-full py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">
+                Return to Dashboard
+            </button>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
