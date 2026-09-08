@@ -2,211 +2,356 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SSF Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SSF Premium Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-50 font-sans antialiased text-slate-800 overflow-hidden h-screen">
+<body class="bg-slate-50 font-sans antialiased text-slate-800 overflow-hidden h-screen flex flex-col">
 
-    <div id="login-section" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 relative hidden">
-        <div class="bg-white/10 p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20 z-10 text-white">
-            <h2 class="text-2xl font-bold mb-6 text-center">Admin Portal</h2>
-            <form id="login-form" class="space-y-4">
-                <input type="email" id="email" required class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl outline-none" placeholder="Email">
-                <input type="password" id="password" required class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl outline-none" placeholder="Password">
-                <button type="submit" id="login-btn" class="w-full bg-emerald-500 text-white font-bold p-3 rounded-xl">Secure Login</button>
+    <!-- Background -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-200/30 blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-200/30 blur-[120px]"></div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-section" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/95 backdrop-blur-md hidden transition-opacity">
+        <div class="bg-white/10 backdrop-blur-xl p-8 md:p-10 rounded-[2rem] shadow-2xl w-full max-w-sm border border-white/20 z-10 text-white">
+            <div class="flex justify-center mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg">
+                    <i data-lucide="shield-check" class="w-8 h-8 text-white"></i>
+                </div>
+            </div>
+            <h2 class="text-2xl font-extrabold mb-8 text-center tracking-tight">Admin Portal</h2>
+            <form id="login-form" class="space-y-5">
+                <input type="email" id="email" required class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-emerald-500 text-white" placeholder="admin@domain.com">
+                <input type="password" id="password" required class="w-full bg-slate-800/50 border border-slate-700 p-4 rounded-xl outline-none focus:border-emerald-500 text-white" placeholder="••••••••">
+                <button type="submit" id="login-btn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:to-teal-600 text-white font-extrabold p-4 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 mt-4">
+                    <i data-lucide="log-in" class="w-5 h-5"></i> Secure Login
+                </button>
             </form>
         </div>
     </div>
 
-    <div id="dashboard-section" class="hidden h-screen flex w-full">
-        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-20 shrink-0">
-            <div class="p-6 font-bold text-white text-xl border-b border-slate-800">SSF Admin</div>
-            <nav class="flex-1 p-4 space-y-2">
-                <button id="nav-overview" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium"><i data-lucide="layout-dashboard"></i> Overview</button>
-                <button id="nav-verify" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium"><i data-lucide="list"></i> Donations</button>
-                <button id="nav-offline" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium"><i data-lucide="plus-circle"></i> Add Offline</button>
-                <button id="nav-cms" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium"><i data-lucide="layout-template"></i> Page CMS</button>
-                <button id="nav-poster" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium"><i data-lucide="image"></i> Poster Builder</button>
+    <!-- DASHBOARD -->
+    <div id="dashboard-section" class="hidden h-screen flex flex-col md:flex-row w-full overflow-hidden relative">
+        
+        <!-- Mobile Header -->
+        <div class="md:hidden flex items-center justify-between bg-slate-900 text-white p-4 shadow-md z-30">
+            <div class="font-bold text-xl flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center"><i data-lucide="shield" class="w-4 h-4"></i></div> SSF Admin</div>
+            <button id="mobile-menu-btn" class="p-2 bg-slate-800 rounded-lg"><i data-lucide="menu"></i></button>
+        </div>
+
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-50 shrink-0 h-full">
+            <div class="p-6 font-bold text-white text-xl border-b border-slate-800 hidden md:flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg"><i data-lucide="shield" class="w-4 h-4"></i></div> SSF Admin
+            </div>
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <button id="nav-overview" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium transition-all"><i data-lucide="layout-dashboard" class="text-emerald-400"></i> Overview</button>
+                <button id="nav-verify" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="list"></i> Donations</button>
+                <button id="nav-offline" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="plus-circle"></i> Add Offline</button>
+                <button id="nav-cms" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="layout-template"></i> Page CMS</button>
+                <button id="nav-poster" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="image"></i> Graphics Engine</button>
             </nav>
-            <div class="p-4"><button id="logout-btn" class="w-full text-red-400 p-3 flex gap-2"><i data-lucide="log-out"></i> Logout</button></div>
+            <div class="p-4 border-t border-slate-800">
+                <button id="logout-btn" class="w-full text-red-400 p-3 flex items-center gap-3 rounded-xl hover:bg-red-500/10 transition-colors font-medium"><i data-lucide="log-out"></i> Logout</button>
+            </div>
         </aside>
 
-        <main class="flex-1 h-screen overflow-y-auto bg-slate-50 relative">
+        <!-- Main Content Area -->
+        <main class="flex-1 h-full overflow-y-auto bg-transparent relative w-full">
             
             <!-- OVERVIEW TAB -->
-            <div id="tab-overview" class="p-10 space-y-6">
-                <h2 class="text-2xl font-bold text-slate-900">Platform Analytics</h2>
-                <div class="grid grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <span class="text-sm font-bold text-slate-400 uppercase">Total Raised</span>
-                        <h3 id="stat-total-raised" class="text-3xl font-extrabold mt-2">₹0</h3>
+            <div id="tab-overview" class="p-4 sm:p-6 md:p-10 space-y-6 md:space-y-8 animate-fade-in-up">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Platform Analytics</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div class="glass-card p-6 md:p-8 rounded-3xl border border-white/60">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Total Raised</span>
+                        <h3 id="stat-total-raised" class="text-3xl md:text-4xl font-black text-slate-900 mt-2">₹0</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <span class="text-sm font-bold text-slate-400 uppercase">Students Sponsored</span>
-                        <h3 id="stat-students" class="text-3xl font-extrabold text-emerald-600 mt-2">0</h3>
+                    <div class="glass-card p-6 md:p-8 rounded-3xl border border-white/60">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Students Sponsored</span>
+                        <h3 id="stat-students" class="text-3xl md:text-4xl font-black text-blue-600 mt-2">0</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <span class="text-sm font-bold text-slate-400 uppercase">Pending Verification</span>
-                        <h3 id="stat-pending-count" class="text-3xl font-extrabold text-amber-600 mt-2">0</h3>
+                    <div class="glass-card p-6 md:p-8 rounded-3xl border border-white/60">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Pending Verifications</span>
+                        <h3 id="stat-pending-count" class="text-3xl md:text-4xl font-black text-amber-600 mt-2">0</h3>
                     </div>
                 </div>
             </div>
 
-            <!-- DONATIONS TABLE -->
-            <div id="tab-verify" class="hidden p-10 h-full flex flex-col space-y-4">
-                <h2 class="text-2xl font-bold text-slate-900">Manage Donations</h2>
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex-1 overflow-auto">
-                    <table class="w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-slate-50 border-b sticky top-0">
-                            <tr>
-                                <th class="p-4 font-bold text-xs uppercase text-slate-500">Donor / Location</th>
-                                <th class="p-4 font-bold text-xs uppercase text-slate-500">Amount / Source</th>
-                                <th class="p-4 font-bold text-xs uppercase text-slate-500">Status</th>
-                                <th class="p-4 font-bold text-xs uppercase text-slate-500 text-right pr-6">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="donations-tbody" class="divide-y divide-slate-100"></tbody>
-                    </table>
+            <!-- DONATIONS TABLE TAB -->
+            <div id="tab-verify" class="hidden p-4 sm:p-6 md:p-10 h-full flex flex-col space-y-4 animate-fade-in-up">
+                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Donations Ledger</h2>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Manage, filter, and export donation records.</p>
+                    </div>
+                    <!-- Export Buttons -->
+                    <div class="flex gap-2 w-full xl:w-auto">
+                        <button id="btn-export-csv" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-emerald-500 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> CSV Export</button>
+                        <button id="btn-export-pdf" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i> PDF Report</button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="glass-card p-4 rounded-2xl border border-white/60 shadow-sm grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+                    <input type="text" id="f_search" placeholder="Search Name, Phone, UTR..." class="col-span-2 md:col-span-1 xl:col-span-2 premium-input p-2.5 rounded-xl text-sm font-medium w-full">
+                    
+                    <select id="f_state" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full"><option value="all">All States</option></select>
+                    <select id="f_district" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full disabled:opacity-50" disabled><option value="all">All Districts</option></select>
+                    
+                    <select id="f_status" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full">
+                        <option value="all">All Status</option><option value="verified">Verified</option><option value="pending">Pending</option>
+                    </select>
+                    <select id="f_msg" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full">
+                        <option value="all">WA: All</option><option value="sent">WA: Sent</option><option value="unsent">WA: Unsent</option>
+                    </select>
+                    
+                    <div class="col-span-2 md:col-span-3 xl:col-span-6 flex gap-3 mt-1 pt-3 border-t border-slate-200/50">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase">From:</span>
+                            <input type="date" id="f_date_from" class="premium-input p-2 rounded-lg text-sm w-full">
+                        </div>
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase">To:</span>
+                            <input type="date" id="f_date_to" class="premium-input p-2 rounded-lg text-sm w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="glass-card rounded-3xl shadow-sm border border-white/60 flex-1 flex flex-col overflow-hidden">
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-slate-100/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-md">
+                                <tr>
+                                    <th class="p-4 font-bold text-xs uppercase text-slate-500">Date & Donor Info</th>
+                                    <th class="p-4 font-bold text-xs uppercase text-slate-500">Location</th>
+                                    <th class="p-4 font-bold text-xs uppercase text-slate-500">Payment & UTR</th>
+                                    <th class="p-4 font-bold text-xs uppercase text-slate-500 text-center">Receipt & WA</th>
+                                    <th class="p-4 font-bold text-xs uppercase text-slate-500 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="donations-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- ADD OFFLINE ENTRY -->
-            <div id="tab-offline" class="hidden p-10 max-w-2xl space-y-6">
-                <h2 class="text-2xl font-bold text-slate-900">Log Offline Collection</h2>
-                <form id="offline-form" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-4">
-                    <input type="text" id="off_name" required class="w-full border p-3 rounded-xl" placeholder="Donor Name">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="off_amount" required class="w-full border p-3 rounded-xl font-bold text-emerald-700" placeholder="Amount (₹)">
-                        <input type="tel" id="off_phone" class="w-full border p-3 rounded-xl" placeholder="Phone (Optional)">
-                        <input type="text" id="off_state" required class="w-full border p-3 rounded-xl" placeholder="State">
-                        <input type="text" id="off_district" class="w-full border p-3 rounded-xl" placeholder="District">
+            <!-- ADD OFFLINE ENTRY TAB -->
+            <div id="tab-offline" class="hidden p-4 sm:p-6 md:p-10 max-w-3xl space-y-6 animate-fade-in-up">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Log Offline Collection</h2>
+                <form id="offline-form" class="glass-card p-6 md:p-8 rounded-3xl shadow-xl border border-white/60 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Donor Name</label>
+                        <input type="text" id="off_name" required class="w-full premium-input p-3.5 rounded-xl font-medium">
                     </div>
-                    <textarea id="off_message" rows="2" class="w-full border p-3 rounded-xl" placeholder="Admin note or Donor message"></textarea>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="off_public" checked class="w-4 h-4 rounded text-emerald-600">
-                        <label class="text-sm font-bold text-slate-600">Display on Public Wall</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Amount (₹)</label>
+                            <input type="number" id="off_amount" required class="w-full premium-input p-3.5 rounded-xl font-black text-emerald-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Phone (Required for WA)</label>
+                            <input type="tel" id="off_phone" required class="w-full premium-input p-3.5 rounded-xl font-medium">
+                        </div>
+                        
+                        <!-- THESE ARE NOW DROPDOWNS -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">State</label>
+                            <select id="off_state" required class="w-full premium-input p-3.5 rounded-xl font-medium bg-white">
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">District</label>
+                            <select id="off_district" required class="w-full premium-input p-3.5 rounded-xl font-medium disabled:opacity-50 disabled:bg-slate-50 bg-white" disabled>
+                                <option value="">Select District</option>
+                            </select>
+                        </div>
+
                     </div>
-                    <button type="submit" class="w-full bg-slate-900 text-white font-bold p-3 rounded-xl hover:bg-slate-800">Add Verified Offline Entry</button>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Admin Note / Message</label>
+                        <textarea id="off_message" rows="2" class="w-full premium-input p-3.5 rounded-xl font-medium"></textarea>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <input type="checkbox" id="off_public" checked class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                        <label class="text-sm font-bold text-slate-700">Display on Public Wall</label>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white font-extrabold p-4 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:-translate-y-0.5">Save Offline Entry</button>
                 </form>
             </div>
 
             <!-- CMS SETTINGS TAB -->
-<div id="tab-cms" class="hidden p-6 md:p-10 max-w-4xl space-y-6">
-    <h2 class="text-2xl font-bold text-slate-900">Page CMS & Settings</h2>
-    
-    <form id="cms-form" class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 space-y-8">
-        
-        <!-- Section 1: Texts & Images -->
-        <div>
-            <h3 class="text-lg font-bold border-b border-slate-100 pb-2 mb-4 text-slate-800">1. Core Content & Branding</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold uppercase mb-1 text-slate-500">Campaign Title (Hero Section)</label>
-                    <input type="text" id="cms_title" class="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase mb-1 text-slate-500">Header Text (Top Nav Bar)</label>
-                    <input type="text" id="cms_header" class="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase mb-1 text-slate-500">Upload New Logo (Top Nav Bar)</label>
-                    <input type="file" id="cms_logo_file" accept="image/*" class="w-full border p-2 rounded-xl text-sm">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold uppercase mb-1 text-slate-500">Campaign Description</label>
-                    <textarea id="cms_desc" rows="2" class="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold uppercase mb-1 text-slate-500">Upload New Banner Image (Hero Background)</label>
-                    <input type="file" id="cms_banner_file" accept="image/*" class="w-full border p-2 rounded-xl text-sm">
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 2: Targets & UPI -->
-        <div>
-            <h3 class="text-lg font-bold border-b border-slate-100 pb-2 mb-4 text-slate-800">2. Targets & Logistics</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase mb-1 text-emerald-600">Total Target Students</label>
-                    <input type="number" id="cms_target_units" class="w-full border p-3 rounded-xl font-bold outline-none focus:ring-2 focus:ring-emerald-500" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase mb-1 text-emerald-600">Cost per Student (₹)</label>
-                    <input type="number" id="cms_unit_cost" class="w-full border p-3 rounded-xl font-bold outline-none focus:ring-2 focus:ring-emerald-500" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase mb-1 text-blue-600">Receiving UPI ID</label>
-                    <input type="text" id="cms_upi" class="w-full border p-3 rounded-xl font-mono font-bold outline-none focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase mb-1 text-slate-500">Campaign End Date (Timer)</label>
-                    <input type="datetime-local" id="cms_end_date" class="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold uppercase mb-1 text-slate-500">Thank You Popup Message</label>
-                    <textarea id="cms_thankyou" rows="2" class="w-full border p-3 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <button type="submit" id="btn-save-cms" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-8 py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md">
-            <i data-lucide="save" class="w-5 h-5"></i> Save CMS Settings
-        </button>
-    </form>
-</div>
-
-            <!-- POSTER BUILDER -->
-            <div id="tab-poster" class="hidden p-10 space-y-6 flex gap-10">
-                <div class="flex-1 space-y-6 max-w-md">
-                    <h2 class="text-2xl font-bold text-slate-900">Poster Layout Engine</h2>
-                    <form id="poster-form" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+            <div id="tab-cms" class="hidden p-4 sm:p-6 md:p-10 max-w-4xl space-y-6 animate-fade-in-up">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Page CMS & Settings</h2>
+                <form id="cms-form" class="glass-card p-6 md:p-8 rounded-3xl shadow-xl border border-white/60 space-y-8">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Campaign Title</label>
+                            <input type="text" id="cms_title" class="w-full premium-input p-3.5 rounded-xl font-medium" required>
+                        </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase mb-1">1. Background Template</label>
-                            <input type="file" id="poster_bg_file" accept="image/*" class="w-full border p-2 rounded-xl text-sm">
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Header Text (Nav Bar)</label>
+                            <input type="text" id="cms_header" class="w-full premium-input p-3.5 rounded-xl font-medium">
                         </div>
-                        <hr class="border-slate-100">
-                        <p class="text-xs font-bold text-slate-400 uppercase">2. Coordinates (Center Aligned)</p>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Upload Logo</label>
+                            <input type="file" id="cms_logo_file" accept="image/*" class="w-full premium-input bg-white p-2.5 rounded-xl text-sm">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Campaign Description</label>
+                            <textarea id="cms_desc" rows="3" class="w-full premium-input p-3.5 rounded-xl font-medium"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Hero Banner Background</label>
+                            <input type="file" id="cms_banner_file" accept="image/*" class="w-full premium-input bg-white p-2.5 rounded-xl text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-emerald-600">Target Students</label>
+                            <input type="number" id="cms_target_units" class="w-full premium-input p-3.5 rounded-xl font-black">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-emerald-600">Cost per Student (₹)</label>
+                            <input type="number" id="cms_unit_cost" class="w-full premium-input p-3.5 rounded-xl font-black">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-blue-600">Receiving UPI ID</label>
+                            <input type="text" id="cms_upi" class="w-full premium-input p-3.5 rounded-xl font-mono font-bold" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">End Date (Timer)</label>
+                            <input type="datetime-local" id="cms_end_date" class="w-full premium-input p-3.5 rounded-xl font-medium">
+                        </div>
                         
-                        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <span class="col-span-3 text-sm font-bold">Donor Name</span>
-                            <input type="number" id="p_name_x" placeholder="X (px)" class="border p-2 rounded text-sm">
-                            <input type="number" id="p_name_y" placeholder="Y (px)" class="border p-2 rounded text-sm">
-                            <input type="color" id="p_name_c" class="w-full h-9 rounded cursor-pointer">
+                        <div class="md:col-span-2 border-t border-slate-200 pt-5 mt-2">
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-green-600"><i data-lucide="message-circle" class="w-4 h-4 inline"></i> WhatsApp Message Template</label>
+                            <p class="text-xs text-slate-400 mb-2">Use tags: <b>{name}</b>, <b>{amount}</b>, <b>{receipt_url}</b></p>
+                            <textarea id="cms_wa_template" rows="4" class="w-full premium-input p-3.5 rounded-xl font-medium text-sm"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-save-cms" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold px-8 py-4 rounded-xl shadow-lg">Save Settings</button>
+                </form>
+            </div>
+
+            <!-- GRAPHICS BUILDER TAB -->
+            <div id="tab-poster" class="hidden p-4 sm:p-6 md:p-10 space-y-6 flex flex-col xl:flex-row gap-6 md:gap-10 animate-fade-in-up">
+                <div class="flex-1 space-y-6 max-w-xl">
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Graphics Engine</h2>
+                    
+                    <!-- Mode Switcher -->
+                    <div class="flex bg-slate-200/50 p-1.5 rounded-xl font-bold text-sm mb-4">
+                        <button id="mode-poster" class="flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 transition-all">Thank You Poster</button>
+                        <button id="mode-receipt" class="flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all">Official Receipt</button>
+                    </div>
+
+                    <form id="graphics-form" class="glass-card p-6 md:p-8 rounded-3xl shadow-xl border border-white/60 space-y-5">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-2 text-slate-500">1. Background Template</label>
+                            <input type="file" id="gfx_bg_file" accept="image/*" class="w-full premium-input bg-white p-2.5 rounded-xl text-sm">
+                        </div>
+                        
+                        <div class="pt-2"><p class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">2. X/Y Coordinates</p></div>
+                        
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span class="col-span-3 text-sm font-bold">Donor Name</span>
+                                <input type="number" id="g_name_x" placeholder="X (px)" class="premium-input p-2 rounded-lg text-sm">
+                                <input type="number" id="g_name_y" placeholder="Y (px)" class="premium-input p-2 rounded-lg text-sm">
+                                <input type="color" id="g_name_c" class="w-full h-9 rounded-lg cursor-pointer border border-slate-200">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span class="col-span-3 text-sm font-bold">Amount</span>
+                                <input type="number" id="g_amt_x" placeholder="X (px)" class="premium-input p-2 rounded-lg text-sm">
+                                <input type="number" id="g_amt_y" placeholder="Y (px)" class="premium-input p-2 rounded-lg text-sm">
+                                <input type="color" id="g_amt_c" class="w-full h-9 rounded-lg cursor-pointer">
+                            </div>
+                            
+                            <!-- State (Poster only) -->
+                            <div id="gfx_opt_state" class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span class="col-span-3 text-sm font-bold">State (Poster Only)</span>
+                                <input type="number" id="g_state_x" placeholder="X" class="premium-input p-2 rounded-lg text-sm">
+                                <input type="number" id="g_state_y" placeholder="Y" class="premium-input p-2 rounded-lg text-sm">
+                                <input type="color" id="g_state_c" class="w-full h-9 rounded-lg cursor-pointer">
+                            </div>
+
+                            <!-- Receipt Specific -->
+                            <div id="gfx_opt_receipt" class="hidden space-y-3">
+                                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <span class="col-span-3 text-sm font-bold">Date</span>
+                                    <input type="number" id="g_date_x" placeholder="X" class="premium-input p-2 rounded-lg text-sm">
+                                    <input type="number" id="g_date_y" placeholder="Y" class="premium-input p-2 rounded-lg text-sm">
+                                    <input type="color" id="g_date_c" class="w-full h-9 rounded-lg cursor-pointer">
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <span class="col-span-3 text-sm font-bold">Receipt No.</span>
+                                    <input type="number" id="g_rec_x" placeholder="X" class="premium-input p-2 rounded-lg text-sm">
+                                    <input type="number" id="g_rec_y" placeholder="Y" class="premium-input p-2 rounded-lg text-sm">
+                                    <input type="color" id="g_rec_c" class="w-full h-9 rounded-lg cursor-pointer">
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <span class="col-span-3 text-sm font-bold">Amount</span>
-                            <input type="number" id="p_amt_x" placeholder="X (px)" class="border p-2 rounded text-sm">
-                            <input type="number" id="p_amt_y" placeholder="Y (px)" class="border p-2 rounded text-sm">
-                            <input type="color" id="p_amt_c" class="w-full h-9 rounded cursor-pointer">
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="previewGraphics()" class="w-full bg-blue-50 text-blue-600 font-bold p-4 rounded-xl">Refresh Preview</button>
+                            <button type="submit" id="btn-save-graphics" class="w-full bg-slate-900 text-white font-bold p-4 rounded-xl">Save Config</button>
                         </div>
-
-                        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                            <span class="col-span-3 text-sm font-bold">State</span>
-                            <input type="number" id="p_state_x" placeholder="X (px)" class="border p-2 rounded text-sm">
-                            <input type="number" id="p_state_y" placeholder="Y (px)" class="border p-2 rounded text-sm">
-                            <input type="color" id="p_state_c" class="w-full h-9 rounded cursor-pointer">
-                        </div>
-
-                        <button type="button" onclick="previewPoster()" class="w-full bg-blue-50 text-blue-600 font-bold p-3 rounded-xl">Refresh Preview</button>
-                        <button type="submit" id="btn-save-poster" class="w-full bg-slate-900 text-white font-bold p-3 rounded-xl">Save Configuration</button>
                     </form>
                 </div>
                 
                 <!-- Live Preview Canvas -->
-                <div class="w-[400px] h-fit bg-white p-4 rounded-3xl shadow-sm border border-slate-200 text-center">
-                    <p class="text-xs font-bold text-slate-400 uppercase mb-3">Live Preview (Canvas: 600x800)</p>
-                    <div class="bg-slate-200 rounded-xl overflow-hidden shadow-inner mx-auto w-full" style="aspect-ratio: 3/4;">
-                        <canvas id="admin-preview-canvas" width="600" height="800" class="w-full h-full object-contain"></canvas>
+                <div class="w-full max-w-[400px] h-fit glass-card p-6 rounded-3xl shadow-xl border border-white/60 mx-auto xl:mx-0">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Live Preview (600x800)</p>
+                    <div class="bg-slate-200 rounded-2xl overflow-hidden shadow-inner w-full aspect-[3/4] border border-slate-200 relative">
+                        <canvas id="admin-preview-canvas" width="600" height="800" class="w-full h-full object-contain absolute inset-0"></canvas>
                     </div>
                 </div>
             </div>
+            
+            <!-- THE MISSING HIDDEN CANVAS NEEDED FOR WHATSAPP RECEIPTS -->
+            <canvas id="hidden-receipt-canvas" width="600" height="800" class="hidden"></canvas>
+
         </main>
+    </div>
+
+<!-- THE MISSING HIDDEN CANVAS NEEDED FOR WHATSAPP RECEIPTS -->
+    <canvas id="hidden-receipt-canvas" width="600" height="800" class="hidden"></canvas>
+
+   <!-- MODAL: VERIFY & ADD/EDIT UTR -->
+    <div id="verify-utr-modal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 hidden transition-opacity">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative text-center">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <i data-lucide="shield-check" class="w-8 h-8 text-emerald-600"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Verify / Edit UTR</h2>
+            <p class="text-slate-500 text-sm mb-6 font-medium leading-relaxed">You can log or update the UTR number here. The system will alert you if this UTR was already used.</p>
+            
+            <input type="hidden" id="verify_id">
+            <div class="text-left mb-8">
+                <label class="block text-xs font-bold uppercase tracking-widest mb-2 text-slate-500 text-center">UTR / Ref No. (Optional)</label>
+                <input type="text" id="verify_utr" class="w-full premium-input p-4 rounded-xl font-mono text-center tracking-widest font-bold outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g. 123456789012">
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('verify-utr-modal').classList.add('hidden')" class="w-full py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
+                <button id="btn-confirm-verify" onclick="submitVerification()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-4 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5">Save & Confirm</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
