@@ -2,212 +2,258 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SSF Trust - Educational Drive</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="text-slate-800 antialiased relative bg-slate-50 overflow-x-hidden">
+<body class="text-slate-800 antialiased relative bg-slate-50 overflow-x-hidden min-h-screen flex flex-col">
     
     <!-- Ambient Background Gradients -->
     <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-teal-200/40 blur-[100px]"></div>
-        <div class="absolute top-[20%] right-[-5%] w-[30%] h-[50%] rounded-full bg-emerald-200/40 blur-[120px]"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-200/30 blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-200/30 blur-[120px]"></div>
     </div>
 
-    <!-- Sticky Header -->
-    <header class="sticky top-0 z-50 glass-card border-b-0 border-white/40">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-                    <i data-lucide="heart-handshake" class="w-5 h-5"></i>
-                </div>
-                <span class="font-bold text-xl tracking-tight text-slate-900">SSF Trust</span>
+    <!-- Premium Sticky Header -->
+    <header class="sticky top-0 z-50 glass-card border-b border-white/50 shadow-sm backdrop-blur-2xl transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img id="site-logo" src="" class="h-10 w-auto hidden rounded shadow-sm" alt="Logo">
+                <span id="site-header-text" class="font-extrabold text-xl tracking-tight text-slate-900">SSF Trust</span>
             </div>
-            <a href="#donate-section" class="hidden md:inline-flex bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium px-5 py-2 rounded-full transition-all hover:scale-105 shadow-md">
-                Donate Now
-            </a>
+            <nav class="flex gap-4 md:gap-8">
+                <button onclick="switchTab('campaign')" id="nav-campaign" class="text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1 transition-colors">Campaign</button>
+                <button onclick="switchTab('my-txns')" id="nav-mytxns" class="text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1 transition-colors">My Transactions</button>
+            </nav>
         </div>
     </header>
     
-    <main class="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+    <!-- MAIN CAMPAIGN VIEW -->
+    <main id="view-campaign" class="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 flex-1">
         
-        <!-- Left Column: Info, Stats & Wall -->
+        <!-- Left Column (Stats & Wall) -->
         <div class="lg:col-span-7 space-y-8 animate-fade-in-up">
             
-            <!-- Hero Image -->
-            <div class="relative group rounded-3xl overflow-hidden shadow-2xl bg-slate-200 h-64 md:h-80">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent z-10"></div>
-                <img id="campaign-banner" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" alt="Campaign Banner">
-                <div class="absolute bottom-6 left-6 z-20">
-                    <span class="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold rounded-full uppercase tracking-wider">Active Campaign</span>
-                </div>
-            </div>
-            
-            <!-- Title -->
-            <div class="animate-fade-in-up delay-100">
-                <h1 id="campaign-title" class="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-teal-900 to-emerald-800 mb-4 pb-2">
-                    Loading Campaign...
-                </h1>
-                <p id="campaign-desc" class="text-lg text-slate-600 leading-relaxed font-light"></p>
-            </div>
-
-            <!-- Progress Card with Timer -->
-            <div class="glass-card p-8 rounded-3xl animate-fade-in-up delay-200">
+            <!-- Dynamic Hero & Stats Card -->
+            <div class="glass-card rounded-[2rem] relative overflow-hidden shadow-xl border border-white/60 flex flex-col">
                 
-                <!-- Countdown Timer -->
-                <div id="countdown-container" class="hidden mb-6 flex justify-center gap-4 text-center border-b border-slate-200/50 pb-6">
-                    <div class="bg-white/80 p-3 rounded-2xl w-24 shadow-sm border border-slate-100">
-                        <span id="timer-days" class="block text-3xl font-black text-emerald-600">00</span>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Days</span>
-                    </div>
-                    <div class="bg-white/80 p-3 rounded-2xl w-24 shadow-sm border border-slate-100">
-                        <span id="timer-hours" class="block text-3xl font-black text-emerald-600">00</span>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hours</span>
-                    </div>
-                    <div class="bg-white/80 p-3 rounded-2xl w-24 shadow-sm border border-slate-100">
-                        <span id="timer-mins" class="block text-3xl font-black text-emerald-600">00</span>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mins</span>
+                <!-- Hero Banner Image Container -->
+                <div id="campaign-banner" class="w-full h-48 md:h-64 bg-slate-200 bg-cover bg-center relative transition-all duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent"></div>
+                    <div class="absolute bottom-6 left-6 z-20">
+                        <span class="px-4 py-1.5 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold rounded-full uppercase tracking-widest shadow-lg">Active Campaign</span>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-end mb-4">
-                    <div>
-                        <p class="text-sm font-semibold text-emerald-600 uppercase tracking-wide mb-1">Total Raised</p>
-                        <h2 id="progress-text" class="text-4xl font-extrabold text-slate-900 tracking-tight">₹0</h2>
+                <div class="p-6 md:p-10 relative z-10 bg-white/40">
+                    <h1 id="campaign-title" class="text-3xl md:text-5xl font-extrabold text-slate-900 mb-3 tracking-tight">Loading...</h1>
+                    <p id="campaign-desc" class="text-base md:text-lg text-slate-600 mb-8 leading-relaxed font-medium"></p>
+
+                    <!-- Timer -->
+                    <div id="countdown-container" class="hidden mb-8 flex justify-center gap-4 text-center border-y border-slate-200/50 py-6">
+                        <div class="bg-white p-3 md:p-4 rounded-2xl w-24 shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                            <span id="timer-days" class="block text-3xl font-black text-emerald-600 tracking-tighter">00</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Days</span>
+                        </div>
+                        <div class="bg-white p-3 md:p-4 rounded-2xl w-24 shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                            <span id="timer-hours" class="block text-3xl font-black text-emerald-600 tracking-tighter">00</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Hours</span>
+                        </div>
+                        <div class="bg-white p-3 md:p-4 rounded-2xl w-24 shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                            <span id="timer-mins" class="block text-3xl font-black text-emerald-600 tracking-tighter">00</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mins</span>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <span id="target-text" class="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">Goal: ₹0</span>
+
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <p class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Students Sponsored</p>
+                            <h2 class="text-4xl md:text-5xl font-black text-slate-900 flex items-baseline gap-2">
+                                <span id="students-sponsored">0</span> 
+                                <span class="text-xl md:text-2xl font-semibold text-slate-400" id="students-target">/ 0</span>
+                            </h2>
+                        </div>
+                        <div class="text-right hidden sm:block">
+                            <span id="total-collected-badge" class="text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-xl shadow-sm">Total: ₹0</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="w-full bg-slate-200/50 rounded-full h-4 overflow-hidden mb-4 p-0.5 border border-white/50 shadow-inner">
-                    <div id="progress-bar" class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-emerald-400 to-teal-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: 0%"></div>
-                </div>
-                
-                <div class="flex items-center justify-between text-sm text-slate-500 font-medium">
-                    <p id="donors-count" class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full shadow-sm">
-                        <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i> <span>0 Supporters</span>
-                    </p>
-                    <p class="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full text-emerald-700 shadow-sm">
-                        <i data-lucide="shield-check" class="w-4 h-4"></i> 100% Secure
-                    </p>
+                    
+                    <div class="w-full bg-slate-200/60 rounded-full h-4 md:h-5 overflow-hidden mb-2 p-0.5 shadow-inner">
+                        <div id="progress-bar" class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-emerald-400 to-teal-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]" style="width: 0%"></div>
+                    </div>
+                    
+                    <p class="text-sm text-slate-500 font-medium sm:hidden mt-4" id="total-collected-mobile">Total: ₹0</p>
                 </div>
             </div>
 
             <!-- Donor Wall -->
-            <div class="animate-fade-in-up delay-300">
-                <div class="flex items-center gap-6 border-b border-slate-200 mb-6">
-                    <button id="tab-recent" class="pb-3 text-lg font-bold border-b-2 border-emerald-500 text-emerald-700 transition-colors flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5"></i> Recent</button>
-                    <button id="tab-top" class="pb-3 text-lg font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-2"><i data-lucide="award" class="w-5 h-5"></i> Top Supporters</button>
+            <div class="animate-fade-in-up delay-200">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-200 pb-4">
+                    <div class="flex items-center gap-6">
+                        <button id="tab-recent" class="text-base md:text-lg font-bold text-emerald-700 transition-colors flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5"></i> Recent</button>
+                        <button id="tab-top" class="text-base md:text-lg font-bold text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-2"><i data-lucide="award" class="w-5 h-5"></i> Top 10</button>
+                    </div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <!-- Premium Dropdown Wrapper -->
+                        <div class="relative select-wrapper w-full md:w-40">
+                            <select id="filter-state" class="appearance-none w-full premium-input rounded-xl p-2.5 pr-8 text-sm bg-white font-medium text-slate-700">
+                                <option value="all">All States</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400"><i data-lucide="chevron-down" class="w-4 h-4"></i></div>
+                        </div>
+                        <div class="relative select-wrapper w-full md:w-40">
+                            <select id="filter-district" class="appearance-none w-full premium-input rounded-xl p-2.5 pr-8 text-sm bg-white font-medium text-slate-700 disabled:bg-slate-50 disabled:opacity-50" disabled>
+                                <option value="all">All Districts</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400"><i data-lucide="chevron-down" class="w-4 h-4"></i></div>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="donor-wall" class="grid grid-cols-1 gap-4">
-                    <!-- Cards injected here via JS -->
+                <div id="donor-wall" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Cards injected via JS -->
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Payment Form -->
-        <div id="donate-section" class="lg:col-span-5 space-y-6 animate-fade-in-up delay-200 relative">
-            <div class="sticky top-24 space-y-6">
-                
-                <!-- Payment Instructions -->
-                <div class="glass-card p-6 rounded-3xl text-center relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
-                    <h3 class="font-bold text-lg mb-1 text-slate-800">Direct Transfer (0% Fees)</h3>
-                    <p class="text-sm text-slate-500 mb-6 font-light">Your entire donation goes to the cause.</p>
-                    
-                    <div class="bg-white p-3 rounded-2xl shadow-sm inline-block mb-4 border border-slate-100 transform hover:scale-105 transition-transform">
-                        <img id="qr-code" class="w-40 h-40 object-contain rounded-xl" alt="UPI QR Code">
-                    </div>
-                    
-                    <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2 pl-4 rounded-xl max-w-[260px] mx-auto hover:border-emerald-300 transition-colors">
-                        <code id="upi-id" class="text-sm font-semibold text-slate-700 tracking-wide"></code>
-                        <button id="copy-upi" class="p-2 bg-white hover:bg-emerald-50 rounded-lg text-emerald-600 shadow-sm border border-slate-100 transition-all hover:scale-105 active:scale-95 flex items-center gap-1 text-xs font-bold">
-                            <i data-lucide="copy" class="w-4 h-4"></i> Copy
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Donation Form -->
-                <form id="donation-form" class="glass-card p-8 rounded-3xl space-y-5">
-                    <h3 class="font-bold text-xl mb-4 text-slate-800 flex items-center gap-2">
-                        <i data-lucide="receipt" class="w-5 h-5 text-emerald-600"></i> Log Your Details
+        <!-- Right Column (Form) -->
+        <div class="lg:col-span-5 relative animate-fade-in-up delay-100">
+            <div class="sticky top-28">
+                <form id="donation-form" class="glass-card p-6 md:p-8 rounded-[2rem] space-y-6 shadow-2xl border border-white/60">
+                    <h3 class="font-extrabold text-2xl text-slate-900 border-b border-slate-100 pb-4 flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"><i data-lucide="heart-handshake" class="w-5 h-5"></i></div>
+                        Sponsor Now
                     </h3>
                     
-                    <div class="space-y-4">
+                    <!-- Amount Options -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Select Amount</label>
+                        <div class="grid grid-cols-2 gap-3" id="amount-options">
+                            <!-- Injected dynamically -->
+                        </div>
+                        <input type="number" id="custom_amount" min="1" class="w-full mt-4 premium-input rounded-xl p-4 text-base hidden font-extrabold text-emerald-700 text-center tracking-wide" placeholder="Enter Custom Amount (₹)">
+                    </div>
+
+                    <!-- Details -->
+                    <div class="space-y-4 pt-2">
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Full Name</label>
-                            <input type="text" id="donor_name" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400" placeholder="John Doe">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Full Name</label>
+                            <input type="text" id="donor_name" required class="w-full premium-input rounded-xl p-3.5 text-sm font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Phone (To access your poster later)</label>
+                            <input type="tel" id="phone_number" required class="w-full premium-input rounded-xl p-3.5 text-sm font-medium" placeholder="10-digit number">
                         </div>
                         
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Phone</label>
-                                <input type="tel" id="phone_number" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400" placeholder="9876543210">
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">State</label>
+                                <div class="relative select-wrapper">
+                                    <select id="donor_state" required class="appearance-none w-full premium-input rounded-xl p-3.5 pr-8 text-sm font-medium bg-white">
+                                        <option value="">Select State</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400"><i data-lucide="chevron-down" class="w-4 h-4"></i></div>
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Amount (₹)</label>
-                                <input type="number" id="amount" min="1" required class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400 font-bold text-emerald-700" placeholder="5000">
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">District</label>
+                                <div class="relative select-wrapper">
+                                    <select id="donor_district" required class="appearance-none w-full premium-input rounded-xl p-3.5 pr-8 text-sm font-medium bg-white disabled:bg-slate-50" disabled>
+                                        <option value="">Select District</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400"><i data-lucide="chevron-down" class="w-4 h-4"></i></div>
+                                </div>
                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Place / City</label>
+                            <input type="text" id="donor_place" required class="w-full premium-input rounded-xl p-3.5 text-sm font-medium" placeholder="e.g. Siliguri">
                         </div>
                         
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">12-Digit UTR Ref</label>
-                            <input type="text" id="transaction_ref" required minlength="12" maxlength="12" class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400 font-mono tracking-widest" placeholder="312345678901">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Support Message (Optional)</label>
-                            <textarea id="donor_message" rows="2" class="w-full premium-input rounded-xl p-3 text-sm outline-none placeholder-slate-400" placeholder="Leave a message for the community..."></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Screenshot</label>
-                            <input type="file" id="screenshot" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-wider file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer premium-input p-1 rounded-xl">
-                            <p class="text-[10px] text-slate-400 mt-1">Image will be auto-compressed.</p>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Support Message (Optional)</label>
+                            <textarea id="donor_message" rows="2" class="w-full premium-input rounded-xl p-3.5 text-sm font-medium" placeholder="Leave a message for the community..."></textarea>
                         </div>
                     </div>
 
-                    <div class="flex items-start gap-3 pt-2">
-                        <input type="checkbox" id="donor_wants_public" checked class="mt-1 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
-                        <label for="donor_wants_public" class="text-sm text-slate-600 font-medium leading-tight">Display my name and message on the public wall.</label>
+                    <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <input type="checkbox" id="donor_wants_public" checked class="mt-0.5 w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer">
+                        <label for="donor_wants_public" class="text-xs text-slate-600 font-medium leading-relaxed cursor-pointer">
+                            Display my name, location, and message on the public wall. 
+                            <span class="block text-[10px] text-slate-400 font-bold mt-0.5">(If unchecked, your donation stays anonymous).</span>
+                        </label>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3.5 rounded-xl transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/30 flex justify-center items-center gap-2 mt-4 text-base tracking-wide">
-                        <i data-lucide="send" class="w-5 h-5"></i> Submit for Verification
+                    <button type="submit" id="init-pay-btn" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-extrabold py-4 rounded-xl shadow-xl shadow-emerald-500/30 flex justify-center items-center gap-2 text-lg transition-transform hover:-translate-y-1 active:translate-y-0">
+                        Proceed to Pay
                     </button>
                 </form>
             </div>
         </div>
     </main>
 
-    <!-- Success Modal with WhatsApp Share -->
-    <div id="success-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 hidden">
-        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl text-center relative overflow-hidden transform scale-95 transition-transform duration-300" id="success-modal-content">
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+    <!-- MY TRANSACTIONS VIEW -->
+    <main id="view-mytxns" class="max-w-4xl mx-auto px-4 py-12 hidden min-h-[75vh]">
+        <div class="glass-card p-8 md:p-12 rounded-[2rem] text-center space-y-6 shadow-xl border border-white/60">
+            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2"><i data-lucide="history" class="w-8 h-8 text-slate-600"></i></div>
+            <h2 class="text-3xl font-extrabold text-slate-900">My Contributions</h2>
+            <p class="text-slate-500 text-base max-w-md mx-auto">Donations made from this device are automatically saved here for you to download your posters.</p>
             
-            <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-                <i data-lucide="check-circle" class="w-10 h-10 text-emerald-600"></i>
+            <div id="my-txns-results" class="space-y-4 text-left mt-10">
+                <!-- Auto injected by JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: PAYMENT (Dynamic QR) -->
+    <div id="payment-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl p-4 hidden transition-opacity">
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl text-center relative border border-white/20">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Scan & Pay</h2>
+            <p class="text-emerald-600 font-black text-5xl mb-6 tracking-tight" id="pay-amount-display">₹0</p>
+            
+            <div class="p-3 bg-slate-50 rounded-2xl inline-block border border-slate-100 mb-6 shadow-sm">
+                <img id="dynamic-qr" src="" class="w-48 h-48 rounded-xl object-contain" alt="UPI QR">
             </div>
             
-            <h2 class="text-2xl font-bold text-slate-900 mb-2">Thank You!</h2>
-            <p class="text-slate-500 mb-8 text-sm">Your donation is pending verification. Once the admin verifies the UTR, your name will appear on the wall.</p>
-            
-            <a id="wa-share-btn" target="_blank" class="w-full flex justify-center items-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-green-500/30 mb-3 hover:scale-105">
-                <i data-lucide="share-2" class="w-5 h-5"></i> Share on WhatsApp
-            </a>
-            
-            <button onclick="document.getElementById('success-modal').classList.add('hidden')" class="w-full py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">
-                Return to Dashboard
-            </button>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Or tap to pay using</p>
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <a id="btn-gpay" href="#" class="flex items-center justify-center gap-2 bg-white border border-slate-200 p-3.5 rounded-xl font-bold text-slate-700 hover:border-emerald-500 hover:shadow-sm transition-all"><img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" class="h-4"> GPay</a>
+                <a id="btn-phonepe" href="#" class="flex items-center justify-center gap-2 bg-white border border-slate-200 p-3.5 rounded-xl font-bold text-slate-700 hover:border-emerald-500 hover:shadow-sm transition-all"><img src="https://download.logo.wine/logo/PhonePe/PhonePe-Logo.wine.png" class="h-6"> PhonePe</a>
+            </div>
+
+            <button id="btn-paid" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-4 rounded-xl shadow-lg shadow-emerald-500/30 mb-4 transition-transform hover:-translate-y-1">I Have Paid Successfully</button>
+            <button onclick="document.getElementById('payment-modal').classList.add('hidden')" class="w-full py-3 text-slate-400 font-bold hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-colors">Cancel Payment</button>
         </div>
     </div>
 
+    <!-- MODAL: SUCCESS & POSTER -->
+    <div id="success-modal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/95 p-4 hidden backdrop-blur-xl">
+        <div class="bg-white rounded-[2rem] p-6 w-full max-w-lg shadow-2xl text-center relative max-h-[95vh] overflow-y-auto">
+            <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <i data-lucide="check-circle" class="w-10 h-10 text-emerald-600"></i>
+            </div>
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Details Submitted!</h2>
+            <p id="thank-you-msg" class="text-slate-500 mb-6 text-sm px-4 font-medium">Thank you for your contribution. Your personalized poster is ready.</p>
+            
+            <div class="bg-slate-100 rounded-2xl overflow-hidden mb-6 relative mx-auto w-[300px] h-[400px] shadow-md border border-slate-200">
+                <canvas id="poster-canvas" width="600" height="800" class="w-full h-full object-contain"></canvas>
+            </div>
+            
+            <div class="flex gap-3 mb-4">
+                <button id="btn-download-poster" class="flex-1 flex justify-center items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-transform hover:-translate-y-1 shadow-lg text-sm">
+                    <i data-lucide="download" class="w-5 h-5"></i> Download
+                </button>
+                <a id="wa-share-btn" target="_blank" class="flex-1 flex justify-center items-center gap-2 bg-[#25D366] hover:bg-[#20b858] text-white font-bold py-4 rounded-xl transition-transform hover:-translate-y-1 shadow-lg text-sm">
+                    <i data-lucide="share-2" class="w-5 h-5"></i> Share Link
+                </a>
+            </div>
+            <button onclick="location.reload()" class="w-full py-3 text-slate-400 font-bold hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-colors">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script type="module" src="app.js"></script>
