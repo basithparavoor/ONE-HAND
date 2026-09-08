@@ -4,7 +4,6 @@ if (typeof lucide !== 'undefined') lucide.createIcons();
 
 let currentDonations = [];
 let siteContent = null;
-let currentGfxMode = 'poster';
 
 const formatMoney = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
@@ -96,35 +95,41 @@ function toggleSidebar() {
         sidebarOverlay.classList.add('hidden');
     }
 }
-
 mobileMenuBtn?.addEventListener('click', toggleSidebar);
 sidebarOverlay?.addEventListener('click', toggleSidebar);
 
+// Resize listener for Canvas recalculation
+window.addEventListener('resize', () => {
+    if(!document.getElementById('tab-poster')?.classList.contains('hidden')) {
+        renderStudioCanvas();
+    }
+});
 
 // --- TAB ROUTING ---
 function switchTab(activeKey) {
-    const tabs = {
-        overview: { btn: document.getElementById('nav-overview'), content: document.getElementById('tab-overview') },
-        verify: { btn: document.getElementById('nav-verify'), content: document.getElementById('tab-verify') },
-        offline: { btn: document.getElementById('nav-offline'), content: document.getElementById('tab-offline') },
-        cms: { btn: document.getElementById('nav-cms'), content: document.getElementById('tab-cms') },
-        poster: { btn: document.getElementById('nav-poster'), content: document.getElementById('tab-poster') }
-    };
+    const tabs = ['overview', 'verify', 'offline', 'cms', 'poster'];
     
-    Object.keys(tabs).forEach(key => {
-        const tab = tabs[key];
-        if(tab.content) tab.content.classList.toggle('hidden', key !== activeKey);
+    tabs.forEach(key => {
+        const content = document.getElementById(`tab-${key}`);
+        const btn = document.getElementById(`nav-${key}`);
         
-        if(tab.btn) {
-            tab.btn.className = key === activeKey 
+        if(content) content.classList.toggle('hidden', key !== activeKey);
+        
+        if(btn) {
+            btn.className = key === activeKey 
                 ? 'w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium shadow-sm transition-all'
                 : 'w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium text-slate-400 transition-colors';
             
-            const icon = tab.btn.querySelector('i');
+            const icon = btn.querySelector('i');
             if(icon) {
                 if(key === activeKey) icon.classList.add('text-emerald-400');
                 else icon.classList.remove('text-emerald-400');
             }
+        }
+        
+        // Re-render canvas properly
+        if(key === 'poster' && activeKey === 'poster') {
+            setTimeout(renderStudioCanvas, 100);
         }
     });
 
@@ -133,11 +138,9 @@ function switchTab(activeKey) {
     }
 }
 
-document.getElementById('nav-overview')?.addEventListener('click', () => switchTab('overview'));
-document.getElementById('nav-verify')?.addEventListener('click', () => switchTab('verify'));
-document.getElementById('nav-offline')?.addEventListener('click', () => switchTab('offline'));
-document.getElementById('nav-cms')?.addEventListener('click', () => switchTab('cms'));
-document.getElementById('nav-poster')?.addEventListener('click', () => switchTab('poster'));
+['overview', 'verify', 'offline', 'cms', 'poster'].forEach(k => {
+    document.getElementById(`nav-${k}`)?.addEventListener('click', () => switchTab(k));
+});
 
 
 // --- LOCATIONS & FILTERS ---
@@ -167,7 +170,6 @@ function setupAdminLocations() {
         }
     });
 }
-
 ['f_search', 'f_status', 'f_msg', 'f_date_from', 'f_date_to'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', renderTable);
 });
@@ -182,10 +184,11 @@ async function loadData() {
     currentDonations = donationsRes.data || [];
     siteContent = cmsRes.data || {};
     
+    injectCustomFonts();
     updateAnalytics();
     renderTable();
     populateCMSForms();
-    populateGraphicsForm();
+    initGraphicsStudio();
 }
 
 function updateAnalytics() {
@@ -200,8 +203,20 @@ function updateAnalytics() {
     if(pEl) pEl.textContent = currentDonations.filter(d => !d.is_verified).length;
 }
 
+function injectCustomFonts() {
+    const fonts = siteContent.custom_fonts || [];
+    let css = fonts.map(f => `@font-face { font-family: '${f.name}'; src: url('${f.url}'); }`).join('\n');
+    document.getElementById('custom-fonts-style').innerHTML = css;
+    
+    const sel = document.getElementById('prop_font');
+    if(sel) {
+        sel.innerHTML = '<option value="Inter">Inter (Default)</option><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option>';
+        fonts.forEach(f => sel.innerHTML += `<option value="${f.name}">${f.name}</option>`);
+    }
+}
 
-// --- ADVANCED TABLE FILTERING & RENDERING ---
+
+// --- ADVANCED TABLE & UTR VERIFICATION ---
 function renderTable() {
     const tbody = document.getElementById('donations-tbody');
     if(!tbody) return;
@@ -273,7 +288,6 @@ function renderTable() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// --- VERIFY MODAL & UTR LOGIC ---
 window.openVerifyModal = (id, currentUtr) => {
     document.getElementById('verify_id').value = id;
     document.getElementById('verify_utr').value = currentUtr || '';
@@ -285,13 +299,10 @@ window.submitVerification = async () => {
     const utr = document.getElementById('verify_utr').value.trim();
     const btn = document.getElementById('btn-confirm-verify');
     
-    // Check for Duplicates
     if (utr) {
         const duplicate = currentDonations.find(d => d.transaction_ref === utr && d.id !== id);
         if (duplicate) {
-            if(!confirm(`Warning! UTR ${utr} is already associated with a donation by ${duplicate.donor_name}. Do you want to proceed anyway?`)) {
-                return;
-            }
+            if(!confirm(`Warning! UTR ${utr} is already associated with a donation by ${duplicate.donor_name}. Do you want to proceed anyway?`)) return;
         }
     }
 
@@ -300,7 +311,6 @@ window.submitVerification = async () => {
     btn.disabled = true;
     if(typeof lucide !== 'undefined') lucide.createIcons();
 
-    // Check if we are verifying for the first time, or just editing an existing UTR
     const existingDonation = currentDonations.find(d => d.id === id);
     const updateData = { transaction_ref: utr || null };
     
@@ -312,16 +322,11 @@ window.submitVerification = async () => {
 
     await supabase.from('donations').update(updateData).eq('id', id);
     
-    Toastify({ 
-        text: existingDonation.is_verified ? "UTR Updated Successfully" : "Donation Verified Successfully", 
-        style: { background: "#10b981" } 
-    }).showToast();
-    
+    Toastify({ text: existingDonation.is_verified ? "UTR Updated Successfully" : "Donation Verified Successfully", style: { background: "#10b981" } }).showToast();
     document.getElementById('verify-utr-modal').classList.add('hidden');
     
     btn.innerHTML = originalText;
     btn.disabled = false;
-    
     loadData();
 };
 
@@ -331,6 +336,7 @@ window.deleteDonation = async (id) => {
         loadData(); 
     }
 };
+
 
 // --- WHATSAPP RECEIPT ENGINE ---
 window.processWhatsAppReceipt = async (id) => {
@@ -350,24 +356,33 @@ window.processWhatsAppReceipt = async (id) => {
     const canvas = document.getElementById('hidden-receipt-canvas');
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
-    const conf = siteContent.receipt_config || {};
+    
+    // Load config
+    const config = siteContent.receipt_config || { width: 600, height: 800, elements: [] };
+    canvas.width = config.width || 600;
+    canvas.height = config.height || 800;
     
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0, canvas.width, canvas.height);
+    
     const drawContent = async () => {
-        ctx.textAlign = "center";
-        
-        ctx.font = `bold ${conf.name?.size||30}px Inter`; ctx.fillStyle = conf.name?.color||'#000';
-        ctx.fillText(donation.donor_name, conf.name?.x||300, conf.name?.y||200);
-        
-        ctx.font = `bold ${conf.amount?.size||25}px Inter`; ctx.fillStyle = conf.amount?.color||'#10b981';
-        ctx.fillText(`₹${donation.amount}`, conf.amount?.x||300, conf.amount?.y||250);
-        
-        const dStr = new Date(donation.created_at).toLocaleDateString();
-        ctx.font = `bold ${conf.date?.size||20}px Inter`; ctx.fillStyle = conf.date?.color||'#64748b';
-        ctx.fillText(dStr, conf.date?.x||300, conf.date?.y||300);
-        
-        ctx.font = `bold ${conf.receipt_no?.size||20}px Inter`; ctx.fillStyle = conf.receipt_no?.color||'#64748b';
-        ctx.fillText(`No: ${recNo}`, conf.receipt_no?.x||300, conf.receipt_no?.y||350);
+        if(config.elements) {
+            config.elements.forEach(el => {
+                let textToDraw = el.text;
+                if(el.fieldKey === 'donor_name') textToDraw = donation.donor_name;
+                if(el.fieldKey === 'amount') textToDraw = `₹${donation.amount}`;
+                if(el.fieldKey === 'state') textToDraw = donation.state || '';
+                if(el.fieldKey === 'district') textToDraw = donation.district || '';
+                if(el.fieldKey === 'place') textToDraw = donation.place || '';
+                if(el.fieldKey === 'date') textToDraw = new Date(donation.created_at).toLocaleDateString();
+                if(el.fieldKey === 'time') textToDraw = new Date(donation.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                if(el.fieldKey === 'receipt_no') textToDraw = `No: ${recNo}`;
+
+                ctx.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size}px ${el.font}`;
+                ctx.fillStyle = el.color;
+                ctx.textAlign = el.align;
+                ctx.fillText(textToDraw, el.x, el.y);
+            });
+        }
 
         canvas.toBlob(async (blob) => {
             const fileName = `rec_${id}_${Date.now()}.jpg`;
@@ -375,7 +390,6 @@ window.processWhatsAppReceipt = async (id) => {
             if(error) return Toastify({ text: "Upload failed", style: {background: "#ef4444"} }).showToast();
             
             const recUrl = supabase.storage.from('receipts').getPublicUrl(fileName).data.publicUrl;
-            
             await supabase.from('donations').update({ msg_sent: true }).eq('id', id);
             
             let template = siteContent.wa_template || "Thank you {name} for ₹{amount}. Receipt: {receipt_url}";
@@ -450,6 +464,7 @@ document.getElementById('offline-form')?.addEventListener('submit', async (e) =>
         phone_number: document.getElementById('off_phone')?.value || null,
         state: document.getElementById('off_state')?.value || '',
         district: document.getElementById('off_district')?.value || '',
+        place: document.getElementById('off_place')?.value || '',
         donor_message: document.getElementById('off_message')?.value || '',
         donor_wants_public: document.getElementById('off_public')?.checked || false,
         is_verified: true,
@@ -529,115 +544,293 @@ document.getElementById('cms-form')?.addEventListener('submit', async (e) => {
     loadData();
 });
 
-// --- GRAPHICS BUILDER (Dual Engine) ---
-function populateGraphicsForm() {
-    if(!siteContent) return;
-    const conf = currentGfxMode === 'poster' ? (siteContent.poster_config||{}) : (siteContent.receipt_config||{});
-    
-    const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
-    setVal('g_name_x', conf.name?.x||300); setVal('g_name_y', conf.name?.y||400); setVal('g_name_c', conf.name?.color||'#000000');
-    setVal('g_amt_x', conf.amount?.x||300); setVal('g_amt_y', conf.amount?.y||450); setVal('g_amt_c', conf.amount?.color||'#10b981');
-    
-    if(currentGfxMode === 'poster') {
-        setVal('g_state_x', conf.state?.x||300); setVal('g_state_y', conf.state?.y||500); setVal('g_state_c', conf.state?.color||'#cbd5e1');
-    } else {
-        setVal('g_date_x', conf.date?.x||300); setVal('g_date_y', conf.date?.y||500); setVal('g_date_c', conf.date?.color||'#64748b');
-        setVal('g_rec_x', conf.receipt_no?.x||300); setVal('g_rec_y', conf.receipt_no?.y||550); setVal('g_rec_c', conf.receipt_no?.color||'#64748b');
-    }
-    window.previewGraphics();
+
+// --- LIVE GRAPHICS STUDIO (Drag & Drop Canvas with Mathematical Resizing Engine) ---
+let currentGfxModeStudio = 'poster';
+let gfxState = { width: 600, height: 800, elements: [], bg_url: null };
+let selectedElementId = null;
+let bgImageObj = null;
+
+const canvasStudio = document.getElementById('studio-canvas');
+const ctxStudio = canvasStudio ? canvasStudio.getContext('2d') : null;
+let isDragging = false;
+let dragOffsetX = 0; let dragOffsetY = 0;
+let currentRenderScale = 1; // Tracks CSS scale multiplier
+
+function initGraphicsStudio() {
+    // Wait for fonts to load before initial render
+    document.fonts.ready.then(() => {
+        switchGfxMode('poster');
+    });
 }
 
-document.getElementById('mode-poster')?.addEventListener('click', (e) => {
-    currentGfxMode = 'poster';
-    e.target.className = 'flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 font-bold transition-all';
-    document.getElementById('mode-receipt').className = 'flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all font-medium';
-    document.getElementById('gfx_opt_state').classList.remove('hidden');
-    document.getElementById('gfx_opt_receipt').classList.add('hidden');
-    populateGraphicsForm();
+function switchGfxMode(mode) {
+    currentGfxModeStudio = mode;
+    
+    const btnPoster = document.getElementById('mode-poster');
+    const btnReceipt = document.getElementById('mode-receipt');
+    
+    if(btnPoster) btnPoster.className = mode === 'poster' ? 'flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 transition-all border border-slate-200/50 font-bold' : 'flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all font-medium';
+    if(btnReceipt) btnReceipt.className = mode === 'receipt' ? 'flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 transition-all border border-slate-200/50 font-bold' : 'flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all font-medium';
+    
+    const rawConf = mode === 'poster' ? siteContent.poster_config : siteContent.receipt_config;
+    if(rawConf && !Array.isArray(rawConf.elements)) {
+        gfxState = { width: 600, height: 800, elements: [], bg_url: mode === 'poster' ? siteContent.poster_bg_url : siteContent.receipt_bg_url };
+    } else {
+        gfxState = rawConf || { width: 600, height: 800, elements: [] };
+    }
+    
+    document.getElementById('gfx_w').value = gfxState.width || 600;
+    document.getElementById('gfx_h').value = gfxState.height || 800;
+    
+    selectedElementId = null;
+    loadStudioBgImage();
+}
+
+document.getElementById('mode-poster')?.addEventListener('click', () => switchGfxMode('poster'));
+document.getElementById('mode-receipt')?.addEventListener('click', () => switchGfxMode('receipt'));
+
+function loadStudioBgImage() {
+    if(!gfxState.bg_url) { bgImageObj = null; renderStudioCanvas(); return; }
+    bgImageObj = new Image(); 
+    bgImageObj.crossOrigin = "Anonymous"; 
+    bgImageObj.src = gfxState.bg_url;
+    bgImageObj.onload = renderStudioCanvas;
+    bgImageObj.onerror = renderStudioCanvas; // Still render if broken
+}
+
+['gfx_w', 'gfx_h'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', (e) => {
+        if(id==='gfx_w') gfxState.width = Number(e.target.value);
+        if(id==='gfx_h') gfxState.height = Number(e.target.value);
+        renderStudioCanvas();
+    });
 });
 
-document.getElementById('mode-receipt')?.addEventListener('click', (e) => {
-    currentGfxMode = 'receipt';
-    e.target.className = 'flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 font-bold transition-all';
-    document.getElementById('mode-poster').className = 'flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all font-medium';
-    document.getElementById('gfx_opt_state').classList.add('hidden');
-    document.getElementById('gfx_opt_receipt').classList.remove('hidden');
-    populateGraphicsForm();
+document.getElementById('btn-add-element')?.addEventListener('click', () => {
+    const type = document.getElementById('gfx_add_field').value;
+    const map = { donor_name:"JANE DOE", amount:"₹1000", state:"KERALA", district:"KOCHI", place:"TOWN", date:"12/10/2026", time:"14:30", receipt_no:"REC-1042" };
+    
+    const newEl = {
+        id: 'el_' + Date.now(),
+        fieldKey: type,
+        text: type === 'custom' ? 'Custom Text' : (map[type] || "Text"),
+        x: gfxState.width / 2, y: gfxState.height / 2,
+        size: 30, color: '#000000', align: 'center', font: 'Inter', bold: true, italic: false
+    };
+    gfxState.elements.push(newEl);
+    selectedElementId = newEl.id;
+    updatePropsPanel();
+    renderStudioCanvas();
 });
 
-window.previewGraphics = () => {
-    const canvas = document.getElementById('admin-preview-canvas');
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    ctx.fillStyle = '#f8fafc'; ctx.fillRect(0,0, canvas.width, canvas.height); 
-    
-    const drawElements = () => {
-        ctx.textAlign = "center";
+if(canvasStudio) {
+    canvasStudio.addEventListener('mousedown', (e) => {
+        const rect = canvasStudio.getBoundingClientRect();
         
-        ctx.font = `bold 30px Inter`; ctx.fillStyle = document.getElementById('g_name_c')?.value||'#000';
-        ctx.fillText("JANE DOE", document.getElementById('g_name_x')?.value||300, document.getElementById('g_name_y')?.value||400);
+        // Use the mathematically calculated scale 
+        const scaleX = canvasStudio.width / rect.width;
+        const scaleY = canvasStudio.height / rect.height;
         
-        ctx.font = `bold 25px Inter`; ctx.fillStyle = document.getElementById('g_amt_c')?.value||'#10b981';
-        ctx.fillText("₹1000", document.getElementById('g_amt_x')?.value||300, document.getElementById('g_amt_y')?.value||450);
-        
-        if(currentGfxMode === 'poster') {
-            ctx.font = `bold 20px Inter`; ctx.fillStyle = document.getElementById('g_state_c')?.value||'#cbd5e1';
-            ctx.fillText("KERALA", document.getElementById('g_state_x')?.value||300, document.getElementById('g_state_y')?.value||500);
-        } else {
-            ctx.font = `bold 20px Inter`; ctx.fillStyle = document.getElementById('g_date_c')?.value||'#64748b';
-            ctx.fillText("12/10/2026", document.getElementById('g_date_x')?.value||300, document.getElementById('g_date_y')?.value||500);
-            
-            ctx.font = `bold 20px Inter`; ctx.fillStyle = document.getElementById('g_rec_c')?.value||'#64748b';
-            ctx.fillText("No: 1042", document.getElementById('g_rec_x')?.value||300, document.getElementById('g_rec_y')?.value||550);
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+
+        for (let i = gfxState.elements.length - 1; i >= 0; i--) {
+            let el = gfxState.elements[i];
+            ctxStudio.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size}px ${el.font}`;
+            let m = ctxStudio.measureText(el.text);
+            let w = m.width; let h = el.size;
+            let x = el.x;
+            if (el.align === 'center') x -= w/2;
+            if (el.align === 'right') x -= w;
+
+            // Hitbox
+            if (mx >= x-10 && mx <= x+w+10 && my >= el.y-h-5 && my <= el.y+10) {
+                selectedElementId = el.id;
+                isDragging = true;
+                dragOffsetX = mx - el.x;
+                dragOffsetY = my - el.y;
+                updatePropsPanel(); 
+                renderStudioCanvas(); 
+                return;
+            }
         }
-    };
+        selectedElementId = null; 
+        updatePropsPanel(); 
+        renderStudioCanvas();
+    });
 
-    const bgUrl = currentGfxMode === 'poster' ? siteContent?.poster_bg_url : siteContent?.receipt_bg_url;
-    if(bgUrl) {
-        const img = new Image(); img.crossOrigin = "Anonymous"; img.src = bgUrl;
-        img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); drawElements(); };
-    } else {
-        drawElements();
+    canvasStudio.addEventListener('mousemove', (e) => {
+        if (!isDragging || !selectedElementId) return;
+        const rect = canvasStudio.getBoundingClientRect();
+        const scaleX = canvasStudio.width / rect.width;
+        const scaleY = canvasStudio.height / rect.height;
+        
+        let el = gfxState.elements.find(e => e.id === selectedElementId);
+        el.x = ((e.clientX - rect.left) * scaleX) - dragOffsetX;
+        el.y = ((e.clientY - rect.top) * scaleY) - dragOffsetY;
+        renderStudioCanvas();
+    });
+
+    canvasStudio.addEventListener('mouseup', () => isDragging = false);
+    canvasStudio.addEventListener('mouseleave', () => isDragging = false);
+}
+
+// ----------------------------------------------------
+// THE MATHEMATICAL RESIZING ENGINE FOR THE PREVIEW
+// ----------------------------------------------------
+function renderStudioCanvas() {
+    if(!canvasStudio || !ctxStudio) return;
+    
+    // Set actual resolution
+    canvasStudio.width = gfxState.width || 600;
+    canvasStudio.height = gfxState.height || 800;
+
+    const workspace = document.getElementById('canvas-workspace');
+    const wrapper = document.getElementById('canvas-wrapper');
+    const scaleIndicator = document.getElementById('preview-scale-indicator');
+
+    if(workspace && wrapper) {
+        // Calculate maximum available space with padding
+        const maxWidth = workspace.clientWidth - 60;
+        const maxHeight = workspace.clientHeight - 80;
+        
+        // Calculate scaling ratio
+        const scaleX = maxWidth / canvasStudio.width;
+        const scaleY = maxHeight / canvasStudio.height;
+        currentRenderScale = Math.min(scaleX, scaleY, 1); // Cap scale at 100%
+
+        // Apply explicitly calculated sizes to prevent flexbox collapsing
+        const finalWidth = canvasStudio.width * currentRenderScale;
+        const finalHeight = canvasStudio.height * currentRenderScale;
+
+        wrapper.style.width = `${finalWidth}px`;
+        wrapper.style.height = `${finalHeight}px`;
+
+        if(scaleIndicator) {
+            scaleIndicator.textContent = `Scale: ${Math.round(currentRenderScale * 100)}%`;
+        }
     }
-};
 
-document.getElementById('graphics-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    ctxStudio.fillStyle = '#ffffff'; 
+    ctxStudio.fillRect(0,0, canvasStudio.width, canvasStudio.height);
+    
+    if(bgImageObj) {
+        ctxStudio.drawImage(bgImageObj, 0, 0, canvasStudio.width, canvasStudio.height);
+    }
+
+    gfxState.elements.forEach(el => {
+        ctxStudio.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size}px ${el.font}`;
+        ctxStudio.fillStyle = el.color; 
+        ctxStudio.textAlign = el.align;
+        ctxStudio.fillText(el.text, el.x, el.y);
+
+        if (el.id === selectedElementId) {
+            let m = ctxStudio.measureText(el.text);
+            let w = m.width; let h = el.size;
+            let x = el.x;
+            if (el.align === 'center') x -= w/2;
+            if (el.align === 'right') x -= w;
+            
+            ctxStudio.strokeStyle = '#3b82f6'; ctxStudio.lineWidth = 2; ctxStudio.setLineDash([6, 6]);
+            ctxStudio.strokeRect(x - 6, el.y - h + 2, w + 12, h + 10);
+            ctxStudio.setLineDash([]);
+        }
+    });
+}
+
+function updatePropsPanel() {
+    const panel = document.getElementById('props-panel');
+    if(!selectedElementId) { panel.classList.add('hidden'); return; }
+    
+    panel.classList.remove('hidden');
+    const el = gfxState.elements.find(e => e.id === selectedElementId);
+    
+    document.getElementById('props-title').textContent = el.fieldKey.replace('_', ' ').toUpperCase();
+    document.getElementById('prop_font').value = el.font;
+    document.getElementById('prop_color').value = el.color;
+    document.getElementById('prop_size').value = el.size;
+    document.getElementById('prop_align').value = el.align;
+    
+    document.getElementById('prop_bold').className = el.bold ? 'flex-1 premium-input bg-blue-100 text-blue-700 border-blue-300 rounded-xl p-2 text-xs font-bold' : 'flex-1 premium-input bg-slate-50 rounded-xl p-2 text-xs font-bold';
+    document.getElementById('prop_italic').className = el.italic ? 'flex-1 premium-input bg-blue-100 text-blue-700 border-blue-300 rounded-xl p-2 text-xs italic' : 'flex-1 premium-input bg-slate-50 rounded-xl p-2 text-xs italic';
+
+    const tw = document.getElementById('props-custom-text-wrapper');
+    if (el.fieldKey === 'custom') { tw.classList.remove('hidden'); document.getElementById('prop_text').value = el.text; }
+    else { tw.classList.add('hidden'); }
+}
+
+['prop_font', 'prop_color', 'prop_size', 'prop_align'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', (e) => {
+        if(!selectedElementId) return; let el = gfxState.elements.find(x => x.id === selectedElementId);
+        if(id==='prop_font') { el.font = e.target.value; document.fonts.load(`${el.size}px ${el.font}`).then(renderStudioCanvas); }
+        if(id==='prop_color') el.color = e.target.value;
+        if(id==='prop_size') el.size = Number(e.target.value);
+        if(id==='prop_align') el.align = e.target.value;
+        renderStudioCanvas();
+    });
+});
+
+document.getElementById('prop_text')?.addEventListener('input', (e) => {
+    if(!selectedElementId) return; let el = gfxState.elements.find(x => x.id === selectedElementId);
+    if(el.fieldKey === 'custom') { el.text = e.target.value; renderStudioCanvas(); }
+});
+document.getElementById('prop_bold')?.addEventListener('click', () => {
+    if(!selectedElementId) return; let el = gfxState.elements.find(x => x.id === selectedElementId);
+    el.bold = !el.bold; updatePropsPanel(); renderStudioCanvas();
+});
+document.getElementById('prop_italic')?.addEventListener('click', () => {
+    if(!selectedElementId) return; let el = gfxState.elements.find(x => x.id === selectedElementId);
+    el.italic = !el.italic; updatePropsPanel(); renderStudioCanvas();
+});
+document.getElementById('btn-del-element')?.addEventListener('click', () => {
+    gfxState.elements = gfxState.elements.filter(x => x.id !== selectedElementId);
+    selectedElementId = null; updatePropsPanel(); renderStudioCanvas();
+});
+
+document.getElementById('btn-save-graphics')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-save-graphics');
-    if(btn) { btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin inline"></i> Saving...'; btn.disabled = true; }
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Saving...';
+    btn.disabled = true;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     
-    let bg_url = currentGfxMode === 'poster' ? siteContent.poster_bg_url : siteContent.receipt_bg_url;
-    const fileInput = document.getElementById('gfx_bg_file');
-    
-    if (fileInput && fileInput.files.length > 0) {
-        const file = fileInput.files[0];
-        const { data, error } = await supabase.storage.from('campaign-assets').upload(`${currentGfxMode}_bg_${Date.now()}.png`, file);
-        if(!error) bg_url = supabase.storage.from('campaign-assets').getPublicUrl(data.path).data.publicUrl;
+    const file = document.getElementById('gfx_bg_file')?.files[0];
+    if (file) {
+        const { data, error } = await supabase.storage.from('campaign-assets').upload(`${currentGfxModeStudio}_bg_${Date.now()}.png`, file);
+        if(!error) gfxState.bg_url = supabase.storage.from('campaign-assets').getPublicUrl(data.path).data.publicUrl;
     }
 
-    const config = {
-        name: { x: document.getElementById('g_name_x')?.value, y: document.getElementById('g_name_y')?.value, size: 30, color: document.getElementById('g_name_c')?.value },
-        amount: { x: document.getElementById('g_amt_x')?.value, y: document.getElementById('g_amt_y')?.value, size: 25, color: document.getElementById('g_amt_c')?.value }
-    };
-    
-    if(currentGfxMode === 'poster') {
-        config.state = { x: document.getElementById('g_state_x')?.value, y: document.getElementById('g_state_y')?.value, size: 20, color: document.getElementById('g_state_c')?.value };
-    } else {
-        config.date = { x: document.getElementById('g_date_x')?.value, y: document.getElementById('g_date_y')?.value, size: 20, color: document.getElementById('g_date_c')?.value };
-        config.receipt_no = { x: document.getElementById('g_rec_x')?.value, y: document.getElementById('g_rec_y')?.value, size: 20, color: document.getElementById('g_rec_c')?.value };
+    const fontFile = document.getElementById('gfx_font_file')?.files[0];
+    if (fontFile) {
+        const fontName = fontFile.name.split('.')[0].replace(/[^a-zA-Z0-9]/g, '');
+        const { data, error } = await supabase.storage.from('campaign-assets').upload(`font_${fontName}_${Date.now()}.ttf`, fontFile);
+        if(!error) {
+            const fontUrl = supabase.storage.from('campaign-assets').getPublicUrl(data.path).data.publicUrl;
+            let currentFonts = siteContent.custom_fonts || [];
+            currentFonts.push({ name: fontName, url: fontUrl });
+            await supabase.from('site_content').update({ custom_fonts: currentFonts }).eq('id', 1);
+            siteContent.custom_fonts = currentFonts;
+            injectCustomFonts();
+        }
     }
 
-    const updatePayload = currentGfxMode === 'poster' 
-        ? { poster_bg_url: bg_url, poster_config: config }
-        : { receipt_bg_url: bg_url, receipt_config: config };
+    const payload = currentGfxModeStudio === 'poster' ? { poster_config: gfxState, poster_bg_url: gfxState.bg_url } : { receipt_config: gfxState, receipt_bg_url: gfxState.bg_url };
+    await supabase.from('site_content').update(payload).eq('id', 1);
 
-    await supabase.from('site_content').update(updatePayload).eq('id', 1);
-
-    Toastify({ text: "Graphics Config Saved", style: { background: "#10b981" } }).showToast();
-    if(btn) { btn.innerHTML = 'Save Config'; btn.disabled = false; }
+    Toastify({ text: "Studio Saved", style: { background: "#10b981" } }).showToast();
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    
     loadData();
 });
 
-// Init Dropdowns
+document.getElementById('btn-reset-gfx')?.addEventListener('click', () => {
+    if(!confirm("Clear all elements?")) return;
+    gfxState.elements = []; selectedElementId = null;
+    updatePropsPanel(); renderStudioCanvas();
+});
+
+// Init
 setupAdminLocations();

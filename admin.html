@@ -11,16 +11,18 @@
     <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800 overflow-hidden h-screen flex flex-col">
 
-    <!-- Background -->
     <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
         <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-200/30 blur-[120px]"></div>
         <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-200/30 blur-[120px]"></div>
     </div>
+
+    <!-- Dynamic Fonts Style Block -->
+    <style id="custom-fonts-style"></style>
 
     <!-- LOGIN SCREEN -->
     <div id="login-section" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/95 backdrop-blur-md hidden transition-opacity">
@@ -41,35 +43,32 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard-section" class="hidden h-screen flex flex-col md:flex-row w-full overflow-hidden relative">
-        
-        <!-- Mobile Header -->
         <div class="md:hidden flex items-center justify-between bg-slate-900 text-white p-4 shadow-md z-30">
-            <div class="font-bold text-xl flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center"><i data-lucide="shield" class="w-4 h-4"></i></div> SSF Admin</div>
-            <button id="mobile-menu-btn" class="p-2 bg-slate-800 rounded-lg"><i data-lucide="menu"></i></button>
-        </div>
+    <div class="font-bold text-xl flex items-center gap-3">
+        <img src="adminlogo.png" class="h-8 w-auto rounded object-contain" alt="Admin Logo"> SSF Admin
+    </div>
+    <button id="mobile-menu-btn" class="p-2 bg-slate-800 rounded-lg"><i data-lucide="menu"></i></button>
+</div>
 
-        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
 
-        <!-- Sidebar -->
-        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-50 shrink-0 h-full">
-            <div class="p-6 font-bold text-white text-xl border-b border-slate-800 hidden md:flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg"><i data-lucide="shield" class="w-4 h-4"></i></div> SSF Admin
-            </div>
-            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <button id="nav-overview" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium transition-all"><i data-lucide="layout-dashboard" class="text-emerald-400"></i> Overview</button>
-                <button id="nav-verify" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="list"></i> Donations</button>
-                <button id="nav-offline" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="plus-circle"></i> Add Offline</button>
-                <button id="nav-cms" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="layout-template"></i> Page CMS</button>
-                <button id="nav-poster" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="image"></i> Graphics Engine</button>
-            </nav>
-            <div class="p-4 border-t border-slate-800">
-                <button id="logout-btn" class="w-full text-red-400 p-3 flex items-center gap-3 rounded-xl hover:bg-red-500/10 transition-colors font-medium"><i data-lucide="log-out"></i> Logout</button>
-            </div>
-        </aside>
+<aside id="sidebar" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-50 shrink-0 h-full">
+    <div class="p-6 font-bold text-white text-xl border-b border-slate-800 hidden md:flex items-center gap-3">
+        <img src="adminlogo.png" class="h-8 w-auto rounded object-contain" alt="Admin Logo"> SSF Admin
+    </div>
+    <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+        <button id="nav-overview" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium transition-all"><i data-lucide="layout-dashboard" class="text-emerald-400"></i> Overview</button>
+        <button id="nav-verify" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="list"></i> Donations</button>
+        <button id="nav-offline" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="plus-circle"></i> Add Offline</button>
+        <button id="nav-cms" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="layout-template"></i> Page CMS</button>
+        <button id="nav-poster" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="brush"></i> Graphics Studio</button>
+    </nav>
+    <div class="p-4 border-t border-slate-800">
+        <button id="logout-btn" class="w-full text-red-400 p-3 flex items-center gap-3 rounded-xl hover:bg-red-500/10 transition-colors font-medium"><i data-lucide="log-out"></i> Logout</button>
+    </div>
+</aside>
 
-        <!-- Main Content Area -->
         <main class="flex-1 h-full overflow-y-auto bg-transparent relative w-full">
             
             <!-- OVERVIEW TAB -->
@@ -91,14 +90,13 @@
                 </div>
             </div>
 
-            <!-- DONATIONS TABLE TAB -->
+            <!-- DONATIONS TABLE -->
             <div id="tab-verify" class="hidden p-4 sm:p-6 md:p-10 h-full flex flex-col space-y-4 animate-fade-in-up">
                 <div class="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-4">
                     <div>
                         <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Donations Ledger</h2>
                         <p class="text-sm text-slate-500 font-medium mt-1">Manage, filter, and export donation records.</p>
                     </div>
-                    <!-- Export Buttons -->
                     <div class="flex gap-2 w-full xl:w-auto">
                         <button id="btn-export-csv" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-emerald-500 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> CSV Export</button>
                         <button id="btn-export-pdf" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i> PDF Report</button>
@@ -108,17 +106,14 @@
                 <!-- Filters -->
                 <div class="glass-card p-4 rounded-2xl border border-white/60 shadow-sm grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
                     <input type="text" id="f_search" placeholder="Search Name, Phone, UTR..." class="col-span-2 md:col-span-1 xl:col-span-2 premium-input p-2.5 rounded-xl text-sm font-medium w-full">
-                    
                     <select id="f_state" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full"><option value="all">All States</option></select>
                     <select id="f_district" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full disabled:opacity-50" disabled><option value="all">All Districts</option></select>
-                    
                     <select id="f_status" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full">
                         <option value="all">All Status</option><option value="verified">Verified</option><option value="pending">Pending</option>
                     </select>
                     <select id="f_msg" class="premium-input p-2.5 rounded-xl text-sm font-medium w-full">
                         <option value="all">WA: All</option><option value="sent">WA: Sent</option><option value="unsent">WA: Unsent</option>
                     </select>
-                    
                     <div class="col-span-2 md:col-span-3 xl:col-span-6 flex gap-3 mt-1 pt-3 border-t border-slate-200/50">
                         <div class="flex items-center gap-2 flex-1">
                             <span class="text-xs font-bold text-slate-400 uppercase">From:</span>
@@ -131,7 +126,6 @@
                     </div>
                 </div>
 
-                <!-- Table -->
                 <div class="glass-card rounded-3xl shadow-sm border border-white/60 flex-1 flex flex-col overflow-hidden">
                     <div class="overflow-x-auto flex-1">
                         <table class="w-full text-left text-sm whitespace-nowrap">
@@ -150,7 +144,7 @@
                 </div>
             </div>
 
-            <!-- ADD OFFLINE ENTRY TAB -->
+            <!-- ADD OFFLINE ENTRY -->
             <div id="tab-offline" class="hidden p-4 sm:p-6 md:p-10 max-w-3xl space-y-6 animate-fade-in-up">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Log Offline Collection</h2>
                 <form id="offline-form" class="glass-card p-6 md:p-8 rounded-3xl shadow-xl border border-white/60 space-y-5">
@@ -167,29 +161,18 @@
                             <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Phone (Required for WA)</label>
                             <input type="tel" id="off_phone" required class="w-full premium-input p-3.5 rounded-xl font-medium">
                         </div>
-                        
-                        <!-- THESE ARE NOW DROPDOWNS -->
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">State</label>
-                            <select id="off_state" required class="w-full premium-input p-3.5 rounded-xl font-medium bg-white">
-                                <option value="">Select State</option>
-                            </select>
+                            <select id="off_state" required class="w-full premium-input p-3.5 rounded-xl font-medium bg-white"><option value="">Select State</option></select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">District</label>
-                            <select id="off_district" required class="w-full premium-input p-3.5 rounded-xl font-medium disabled:opacity-50 disabled:bg-slate-50 bg-white" disabled>
-                                <option value="">Select District</option>
-                            </select>
+                            <select id="off_district" required class="w-full premium-input p-3.5 rounded-xl font-medium disabled:opacity-50 bg-white" disabled><option value="">Select District</option></select>
                         </div>
-
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Admin Note / Message</label>
-                        <textarea id="off_message" rows="2" class="w-full premium-input p-3.5 rounded-xl font-medium"></textarea>
-                    </div>
-                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <input type="checkbox" id="off_public" checked class="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
-                        <label class="text-sm font-bold text-slate-700">Display on Public Wall</label>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Place / City</label>
+                            <input type="text" id="off_place" required class="w-full premium-input p-3.5 rounded-xl font-medium">
+                        </div>
                     </div>
                     <button type="submit" class="w-full bg-slate-900 text-white font-extrabold p-4 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:-translate-y-0.5">Save Offline Entry</button>
                 </form>
@@ -199,14 +182,14 @@
             <div id="tab-cms" class="hidden p-4 sm:p-6 md:p-10 max-w-4xl space-y-6 animate-fade-in-up">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Page CMS & Settings</h2>
                 <form id="cms-form" class="glass-card p-6 md:p-8 rounded-3xl shadow-xl border border-white/60 space-y-8">
-                    
+                    <!-- Text and Logic -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Campaign Title</label>
                             <input type="text" id="cms_title" class="w-full premium-input p-3.5 rounded-xl font-medium" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Header Text (Nav Bar)</label>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Header Text</label>
                             <input type="text" id="cms_header" class="w-full premium-input p-3.5 rounded-xl font-medium">
                         </div>
                         <div>
@@ -215,19 +198,18 @@
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Campaign Description</label>
-                            <textarea id="cms_desc" rows="3" class="w-full premium-input p-3.5 rounded-xl font-medium"></textarea>
+                            <textarea id="cms_desc" rows="2" class="w-full premium-input p-3.5 rounded-xl font-medium"></textarea>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Hero Banner Background</label>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">Hero Banner</label>
                             <input type="file" id="cms_banner_file" accept="image/*" class="w-full premium-input bg-white p-2.5 rounded-xl text-sm">
                         </div>
-
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-emerald-600">Target Students</label>
+                            <label class="block text-xs font-bold uppercase mb-1.5 text-emerald-600">Target Students</label>
                             <input type="number" id="cms_target_units" class="w-full premium-input p-3.5 rounded-xl font-black">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-emerald-600">Cost per Student (₹)</label>
+                            <label class="block text-xs font-bold uppercase mb-1.5 text-emerald-600">Cost per Student (₹)</label>
                             <input type="number" id="cms_unit_cost" class="w-full premium-input p-3.5 rounded-xl font-black">
                         </div>
                         <div>
@@ -235,123 +217,186 @@
                             <input type="text" id="cms_upi" class="w-full premium-input p-3.5 rounded-xl font-mono font-bold" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">End Date (Timer)</label>
+                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">End Date</label>
                             <input type="datetime-local" id="cms_end_date" class="w-full premium-input p-3.5 rounded-xl font-medium">
                         </div>
-                        
                         <div class="md:col-span-2 border-t border-slate-200 pt-5 mt-2">
                             <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-green-600"><i data-lucide="message-circle" class="w-4 h-4 inline"></i> WhatsApp Message Template</label>
                             <p class="text-xs text-slate-400 mb-2">Use tags: <b>{name}</b>, <b>{amount}</b>, <b>{receipt_url}</b></p>
-                            <textarea id="cms_wa_template" rows="4" class="w-full premium-input p-3.5 rounded-xl font-medium text-sm"></textarea>
+                            <textarea id="cms_wa_template" rows="3" class="w-full premium-input p-3.5 rounded-xl font-medium text-sm"></textarea>
                         </div>
                     </div>
                     <button type="submit" id="btn-save-cms" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold px-8 py-4 rounded-xl shadow-lg">Save Settings</button>
                 </form>
             </div>
 
-            <!-- GRAPHICS BUILDER TAB -->
-            <div id="tab-poster" class="hidden p-4 sm:p-6 md:p-10 space-y-6 flex flex-col xl:flex-row gap-6 md:gap-10 animate-fade-in-up">
-                <div class="flex-1 space-y-6 max-w-xl">
-                    <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Graphics Engine</h2>
+            <!-- THE NEW PREMIUM GRAPHICS STUDIO TAB -->
+            <div id="tab-poster" class="hidden h-[calc(100vh-70px)] md:h-full flex-col lg:flex-row bg-slate-50 overflow-hidden relative animate-fade-in-up">
+                
+                <!-- Sidebar Controls (Left Panel) -->
+                <div class="w-full lg:w-[400px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] shrink-0 overflow-hidden">
                     
-                    <!-- Mode Switcher -->
-                    <div class="flex bg-slate-200/50 p-1.5 rounded-xl font-bold text-sm mb-4">
-                        <button id="mode-poster" class="flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 transition-all">Thank You Poster</button>
-                        <button id="mode-receipt" class="flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all">Official Receipt</button>
+                    <!-- Header & Mode Switcher -->
+                    <div class="p-5 border-b border-slate-100 bg-white sticky top-0 z-10">
+                        <h2 class="text-xl font-extrabold text-slate-900 tracking-tight mb-4 flex items-center gap-2">
+                            <div class="p-1.5 bg-emerald-100 rounded-lg text-emerald-600"><i data-lucide="brush" class="w-5 h-5"></i></div> 
+                            Graphics Studio
+                        </h2>
+                        
+                        <div class="flex bg-slate-100/80 p-1 rounded-xl font-bold text-sm">
+                            <button id="mode-poster" class="flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 transition-all border border-slate-200/50">Thank You Poster</button>
+                            <button id="mode-receipt" class="flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all">Official Receipt</button>
+                        </div>
                     </div>
 
-                    <form id="graphics-form" class="glass-card p-6 md:p-8 rounded-3xl shadow-xl border border-white/60 space-y-5">
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest mb-2 text-slate-500">1. Background Template</label>
-                            <input type="file" id="gfx_bg_file" accept="image/*" class="w-full premium-input bg-white p-2.5 rounded-xl text-sm">
-                        </div>
+                    <!-- Scrollable Tools Area -->
+                    <div class="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-hide bg-slate-50/30">
                         
-                        <div class="pt-2"><p class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2">2. X/Y Coordinates</p></div>
-                        
-                        <div class="space-y-3">
-                            <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                <span class="col-span-3 text-sm font-bold">Donor Name</span>
-                                <input type="number" id="g_name_x" placeholder="X (px)" class="premium-input p-2 rounded-lg text-sm">
-                                <input type="number" id="g_name_y" placeholder="Y (px)" class="premium-input p-2 rounded-lg text-sm">
-                                <input type="color" id="g_name_c" class="w-full h-9 rounded-lg cursor-pointer border border-slate-200">
+                        <!-- Canvas Dimensions -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="maximize" class="w-3 h-3"></i> Canvas Size (px)</h3>
+                            <div class="flex gap-3">
+                                <div class="flex-1 relative">
+                                    <span class="absolute left-3 top-2.5 text-xs font-bold text-slate-400">W</span>
+                                    <input type="number" id="gfx_w" class="w-full premium-input pl-8 p-2 text-sm font-mono font-bold text-slate-700 rounded-xl bg-slate-50 focus:bg-white">
+                                </div>
+                                <div class="flex items-center text-slate-300"><i data-lucide="x" class="w-3 h-3"></i></div>
+                                <div class="flex-1 relative">
+                                    <span class="absolute left-3 top-2.5 text-xs font-bold text-slate-400">H</span>
+                                    <input type="number" id="gfx_h" class="w-full premium-input pl-8 p-2 text-sm font-mono font-bold text-slate-700 rounded-xl bg-slate-50 focus:bg-white">
+                                </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                <span class="col-span-3 text-sm font-bold">Amount</span>
-                                <input type="number" id="g_amt_x" placeholder="X (px)" class="premium-input p-2 rounded-lg text-sm">
-                                <input type="number" id="g_amt_y" placeholder="Y (px)" class="premium-input p-2 rounded-lg text-sm">
-                                <input type="color" id="g_amt_c" class="w-full h-9 rounded-lg cursor-pointer">
+                        </div>
+
+                        <!-- Assets: Background & Fonts -->
+                        <div class="space-y-4">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5"><i data-lucide="image" class="w-3 h-3"></i> Assets</h3>
+                            <div>
+                                <label class="text-xs font-bold text-slate-600 block mb-1.5">Background Template Image</label>
+                                <input type="file" id="gfx_bg_file" accept="image/*" class="w-full premium-input bg-white p-2 rounded-xl text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-600 block mb-1.5">Upload Custom Font (.ttf)</label>
+                                <input type="file" id="gfx_font_file" accept=".ttf,.woff,.woff2" class="w-full premium-input bg-white p-2 rounded-xl text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <div class="h-px bg-slate-200 w-full"></div>
+
+                        <!-- Element Manager -->
+                        <div>
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="layers" class="w-3 h-3"></i> Layers</h3>
+                            <div class="flex gap-2">
+                                <div class="relative flex-1 select-wrapper">
+                                    <select id="gfx_add_field" class="appearance-none w-full premium-input rounded-xl p-3 text-sm font-bold bg-white text-slate-700 border-slate-200">
+                                        <option value="donor_name">Donor Name</option>
+                                        <option value="amount">Amount</option>
+                                        <option value="state">State</option>
+                                        <option value="district">District</option>
+                                        <option value="place">Place</option>
+                                        <option value="date">Date</option>
+                                        <option value="time">Time</option>
+                                        <option value="receipt_no">Receipt No.</option>
+                                        <option value="custom">Custom Text Block</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400"><i data-lucide="chevron-down" class="w-4 h-4"></i></div>
+                                </div>
+                                <button id="btn-add-element" class="bg-slate-900 hover:bg-slate-800 text-white px-4 rounded-xl shadow-md transition-transform hover:-translate-y-0.5"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Selected Element Properties (The Inspector Panel) -->
+                        <div id="props-panel" class="bg-white border-2 border-blue-500 rounded-2xl p-4 hidden shadow-lg shadow-blue-500/10 relative overflow-hidden transition-all">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                            
+                            <div class="flex justify-between items-center mb-4 pt-1">
+                                <h4 class="text-xs font-black text-blue-700 uppercase tracking-widest flex items-center gap-1.5"><i data-lucide="edit-2" class="w-3 h-3"></i> <span id="props-title">Edit Element</span></h4>
+                                <button id="btn-del-element" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors" title="Delete Element"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                             
-                            <!-- State (Poster only) -->
-                            <div id="gfx_opt_state" class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                <span class="col-span-3 text-sm font-bold">State (Poster Only)</span>
-                                <input type="number" id="g_state_x" placeholder="X" class="premium-input p-2 rounded-lg text-sm">
-                                <input type="number" id="g_state_y" placeholder="Y" class="premium-input p-2 rounded-lg text-sm">
-                                <input type="color" id="g_state_c" class="w-full h-9 rounded-lg cursor-pointer">
+                            <div id="props-custom-text-wrapper" class="hidden mb-4">
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Text Content</label>
+                                <textarea id="prop_text" rows="2" class="w-full premium-input rounded-xl p-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white"></textarea>
                             </div>
 
-                            <!-- Receipt Specific -->
-                            <div id="gfx_opt_receipt" class="hidden space-y-3">
-                                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                    <span class="col-span-3 text-sm font-bold">Date</span>
-                                    <input type="number" id="g_date_x" placeholder="X" class="premium-input p-2 rounded-lg text-sm">
-                                    <input type="number" id="g_date_y" placeholder="Y" class="premium-input p-2 rounded-lg text-sm">
-                                    <input type="color" id="g_date_c" class="w-full h-9 rounded-lg cursor-pointer">
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Font Family</label>
+                                    <select id="prop_font" class="w-full premium-input rounded-xl p-2 text-xs font-bold bg-slate-50 focus:bg-white"></select>
                                 </div>
-                                <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                    <span class="col-span-3 text-sm font-bold">Receipt No.</span>
-                                    <input type="number" id="g_rec_x" placeholder="X" class="premium-input p-2 rounded-lg text-sm">
-                                    <input type="number" id="g_rec_y" placeholder="Y" class="premium-input p-2 rounded-lg text-sm">
-                                    <input type="color" id="g_rec_c" class="w-full h-9 rounded-lg cursor-pointer">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Size (px)</label>
+                                    <input type="number" id="prop_size" class="w-full premium-input rounded-xl p-2 text-xs font-bold text-slate-700 bg-slate-50 focus:bg-white">
                                 </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Text Color</label>
+                                    <div class="flex items-center gap-2 bg-slate-50 premium-input rounded-xl p-1 pr-3">
+                                        <input type="color" id="prop_color" class="w-7 h-7 rounded-lg cursor-pointer border-0 p-0 bg-transparent shrink-0">
+                                        <span class="text-[10px] font-mono text-slate-500 font-bold uppercase w-full text-center">Color</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Align</label>
+                                    <select id="prop_align" class="w-full premium-input rounded-xl p-2 text-xs font-bold bg-slate-50 focus:bg-white">
+                                        <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button id="prop_bold" class="flex-1 premium-input bg-slate-50 rounded-xl p-2 text-xs font-bold transition-colors">B</button>
+                                <button id="prop_italic" class="flex-1 premium-input bg-slate-50 rounded-xl p-2 text-xs italic transition-colors">I</button>
                             </div>
                         </div>
 
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" onclick="previewGraphics()" class="w-full bg-blue-50 text-blue-600 font-bold p-4 rounded-xl">Refresh Preview</button>
-                            <button type="submit" id="btn-save-graphics" class="w-full bg-slate-900 text-white font-bold p-4 rounded-xl">Save Config</button>
-                        </div>
-                    </form>
+                    </div>
+                    
+                    <!-- Bottom Actions -->
+                    <div class="p-4 border-t border-slate-200 bg-white flex gap-3 sticky bottom-0 z-10 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+                        <button id="btn-reset-gfx" class="p-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors" title="Reset Workspace"><i data-lucide="rotate-ccw" class="w-5 h-5"></i></button>
+                        <button id="btn-save-graphics" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:to-teal-600 text-white font-extrabold py-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <i data-lucide="save" class="w-5 h-5"></i> Save Studio
+                        </button>
+                    </div>
                 </div>
-                
-                <!-- Live Preview Canvas -->
-                <div class="w-full max-w-[400px] h-fit glass-card p-6 rounded-3xl shadow-xl border border-white/60 mx-auto xl:mx-0">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Live Preview (600x800)</p>
-                    <div class="bg-slate-200 rounded-2xl overflow-hidden shadow-inner w-full aspect-[3/4] border border-slate-200 relative">
-                        <canvas id="admin-preview-canvas" width="600" height="800" class="w-full h-full object-contain absolute inset-0"></canvas>
+
+                <!-- Canvas Workspace (Artboard Area) -->
+                <div class="flex-1 overflow-auto bg-slate-100 flex flex-col items-center justify-center p-4 md:p-8 relative" id="canvas-workspace">
+                    
+                    <!-- Dotted Grid Background -->
+                    <div class="absolute inset-0 z-0 bg-[radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-60"></div>
+                    
+                    <!-- Workspace Toolbar -->
+                    <div class="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 bg-slate-900/80 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg flex items-center gap-4 border border-white/10">
+                        <span class="flex items-center gap-2 text-xs font-bold text-white"><i data-lucide="move" class="w-4 h-4 text-emerald-400"></i> Click & Drag Elements</span>
+                        <div class="w-px h-4 bg-white/20"></div>
+                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider" id="preview-scale-indicator">Scale: Auto</span>
+                    </div>
+
+                    <!-- The Artboard -->
+                    <div id="canvas-wrapper" class="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-all transform origin-center z-10 border border-slate-200 rounded-sm overflow-hidden">
+                        <canvas id="studio-canvas" class="w-full h-full block cursor-move"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UTR Verify Modal -->
+            <div id="verify-utr-modal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 hidden transition-opacity">
+                <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative text-center">
+                    <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4"><i data-lucide="shield-check" class="w-8 h-8 text-emerald-600"></i></div>
+                    <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Verify / Edit UTR</h2>
+                    <input type="hidden" id="verify_id">
+                    <input type="text" id="verify_utr" class="w-full premium-input p-4 rounded-xl font-mono text-center tracking-widest font-bold outline-none mb-6" placeholder="UTR Number (Optional)">
+                    <div class="flex gap-3">
+                        <button onclick="document.getElementById('verify-utr-modal').classList.add('hidden')" class="w-full py-4 text-slate-500 font-bold bg-slate-100 rounded-xl">Cancel</button>
+                        <button id="btn-confirm-verify" onclick="submitVerification()" class="w-full bg-emerald-500 text-white font-extrabold py-4 rounded-xl">Save</button>
                     </div>
                 </div>
             </div>
             
-            <!-- THE MISSING HIDDEN CANVAS NEEDED FOR WHATSAPP RECEIPTS -->
-            <canvas id="hidden-receipt-canvas" width="600" height="800" class="hidden"></canvas>
-
+            <!-- Hidden Canvas for Actual Generation -->
+            <canvas id="hidden-receipt-canvas" class="hidden"></canvas>
         </main>
-    </div>
-
-<!-- THE MISSING HIDDEN CANVAS NEEDED FOR WHATSAPP RECEIPTS -->
-    <canvas id="hidden-receipt-canvas" width="600" height="800" class="hidden"></canvas>
-
-   <!-- MODAL: VERIFY & ADD/EDIT UTR -->
-    <div id="verify-utr-modal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 hidden transition-opacity">
-        <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative text-center">
-            <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 shadow-inner">
-                <i data-lucide="shield-check" class="w-8 h-8 text-emerald-600"></i>
-            </div>
-            <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Verify / Edit UTR</h2>
-            <p class="text-slate-500 text-sm mb-6 font-medium leading-relaxed">You can log or update the UTR number here. The system will alert you if this UTR was already used.</p>
-            
-            <input type="hidden" id="verify_id">
-            <div class="text-left mb-8">
-                <label class="block text-xs font-bold uppercase tracking-widest mb-2 text-slate-500 text-center">UTR / Ref No. (Optional)</label>
-                <input type="text" id="verify_utr" class="w-full premium-input p-4 rounded-xl font-mono text-center tracking-widest font-bold outline-none focus:ring-2 focus:ring-emerald-500" placeholder="e.g. 123456789012">
-            </div>
-
-            <div class="flex gap-3">
-                <button onclick="document.getElementById('verify-utr-modal').classList.add('hidden')" class="w-full py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors">Cancel</button>
-                <button id="btn-confirm-verify" onclick="submitVerification()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-4 rounded-xl shadow-lg transition-transform hover:-translate-y-0.5">Save & Confirm</button>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
