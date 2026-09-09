@@ -9,7 +9,7 @@ const formatMoney = (amount) => new Intl.NumberFormat('en-IN', { style: 'currenc
 
 // --- GLOBAL STATE ---
 let campaignData = null;
-let currentDonationState = {}; // Holds form data between modal steps
+let currentDonationState = {}; 
 let currentDonors = [];
 let endInterval;
 
@@ -87,40 +87,24 @@ function updateDistricts(state, targetSelect) {
     }
 }
 
-// --- IMAGE COMPRESSION ENGINE ---
-async function compressImage(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1200;
-                const scaleSize = MAX_WIDTH / img.width;
-                canvas.width = Math.min(MAX_WIDTH, img.width);
-                canvas.height = img.width > MAX_WIDTH ? img.height * scaleSize : img.height;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                // Compress to 60% quality JPEG
-                canvas.toBlob((blob) => {
-                    resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' }));
-                }, 'image/jpeg', 0.6);
-            };
-        };
-    });
-}
-
 // --- CORE DATA FETCHING ---
 async function loadCampaignStats() {
     const { data, error } = await supabase.from('public_campaign_stats').select('*').single();
     if (error || !data) return console.error('Failed to load stats:', error);
     campaignData = data;
 
-    // Header & Texts
+    // Load Admin Custom Fonts for Public View
+    if (campaignData.custom_fonts && campaignData.custom_fonts.length > 0) {
+        let css = campaignData.custom_fonts.map(f => `@font-face { font-family: '${f.name}'; src: url('${f.url}'); }`).join('\n');
+        document.getElementById('custom-fonts-style').innerHTML = css;
+        
+        // Force the fonts to load into the browser's cache so the canvas can immediately use them
+        campaignData.custom_fonts.forEach(f => {
+            const fontFace = new FontFace(f.name, `url(${f.url})`);
+            fontFace.load().then((loadedFace) => { document.fonts.add(loadedFace); });
+        });
+    }
+
     const titleEl = document.getElementById('campaign-title');
     if(titleEl) titleEl.textContent = data.campaign_title;
     const descEl = document.getElementById('campaign-desc');
@@ -136,16 +120,13 @@ async function loadCampaignStats() {
         if(logo) { logo.src = data.logo_url; logo.classList.remove('hidden'); }
     }
 
-    // --- APPLY PREMIUM HERO BANNER ---
     const bannerContainer = document.getElementById('campaign-banner');
     if(bannerContainer && data.banner_url) {
         bannerContainer.style.backgroundImage = `url('${data.banner_url}')`;
     } else if (bannerContainer) {
-        // Beautiful fallback if no image uploaded
         bannerContainer.style.backgroundImage = `linear-gradient(135deg, #0f172a 0%, #064e3b 100%)`;
     }
 
-    // Dynamic Amount Radio Options based on Unit Cost
     const cost = Number(data.unit_cost);
     const opts = document.getElementById('amount-options');
     if(opts) {
@@ -172,7 +153,6 @@ async function loadCampaignStats() {
             </label>
         `;
 
-        // Styling listeners for radio buttons
         document.querySelectorAll('input[name="amt_preset"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 document.querySelectorAll('input[name="amt_preset"]').forEach(r => {
@@ -192,7 +172,6 @@ async function loadCampaignStats() {
         });
     }
 
-    // Progress Bar (Based on Unit Count)
     const collected = Number(data.total_collected);
     const studentsSponsored = Math.floor(collected / cost);
     const targetStudents = Number(data.target_units);
@@ -210,10 +189,9 @@ async function loadCampaignStats() {
         }
     }, 300);
 
-    // Timer Check
     if(data.end_date) startTimer(data.end_date);
 }
-// Timer Logic
+
 function startTimer(endDateString) {
     const endDate = new Date(endDateString).getTime();
     document.getElementById('countdown-container')?.classList.remove('hidden');
@@ -291,8 +269,7 @@ function filterWall() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// --- EVENT LISTENERS (Safe bindings) ---
-
+// --- EVENT LISTENERS ---
 const tabRecent = document.getElementById('tab-recent');
 const tabTop = document.getElementById('tab-top');
 
@@ -337,7 +314,6 @@ async function loadMyTransactions() {
     resDiv.innerHTML = '<p class="text-slate-500 text-center"><i data-lucide="loader-2" class="animate-spin inline w-5 h-5 mr-2"></i> Fetching your records...</p>';
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    // Query Supabase only for the IDs stored on this device
     const { data } = await supabase.from('donations')
         .select('*')
         .in('id', storedIds)
@@ -345,29 +321,34 @@ async function loadMyTransactions() {
     
     if(!data || data.length === 0) {
         resDiv.innerHTML = '<p class="text-slate-500 text-center bg-white p-6 rounded-2xl border border-slate-200">No active transactions found on this device.</p>';
-        // Optional: clear local storage if everything was deleted/rejected by admin
         localStorage.setItem('ssf_my_txns', '[]');
         return;
     }
 
-    // Sync local storage (removes any IDs that an admin deleted/rejected)
     const validIds = data.map(d => d.id);
     localStorage.setItem('ssf_my_txns', JSON.stringify(validIds));
 
-    resDiv.innerHTML = data.map(d => `
+    resDiv.innerHTML = data.map(d => {
+        // Safely escape parameters
+        const safeName = (d.donor_name || '').replace(/'/g, "\\'");
+        const safeState = (d.state || '').replace(/'/g, "\\'");
+        const safeDist = (d.district || '').replace(/'/g, "\\'");
+        const safePlace = (d.place || '').replace(/'/g, "\\'");
+        
+        return `
         <div class="bg-white p-5 rounded-2xl border border-slate-200 flex justify-between items-center shadow-sm hover:border-emerald-300 transition-colors">
             <div>
                 <p class="font-bold text-slate-900 text-lg">₹${d.amount}</p>
                 <p class="text-xs text-slate-500">${new Date(d.created_at).toLocaleDateString()} - ${d.is_verified ? '<span class="text-emerald-600 font-bold px-1.5 py-0.5 bg-emerald-50 rounded">Verified</span>' : '<span class="text-amber-600 font-bold px-1.5 py-0.5 bg-amber-50 rounded">Pending Approval</span>'}</p>
             </div>
-            <button onclick="reprintPoster('${d.donor_name}', ${d.amount}, '${d.state}')" class="text-sm bg-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl font-bold text-white transition flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> View Poster</button>
+            <button onclick="reprintPoster('${safeName}', ${d.amount}, '${safeState}', '${safeDist}', '${safePlace}')" class="text-sm bg-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl font-bold text-white transition flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> View Poster</button>
         </div>
-    `).join('');
+    `}).join('');
     
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// --- FORM SUBMIT (Step 1: Show Payment Modal) ---
+// --- FORM SUBMIT (Show Payment Modal) ---
 document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
     
@@ -376,7 +357,6 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     const preset = presetNode.value;
     const finalAmount = preset === 'custom' ? document.getElementById('custom_amount').value : preset;
     
-    // Save state temporarily
     currentDonationState = {
         name: document.getElementById('donor_name').value,
         phone: document.getElementById('phone_number').value,
@@ -386,10 +366,8 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
         message: document.getElementById('donor_message').value,
         wants_public: document.getElementById('donor_wants_public').checked,
         amount: finalAmount
-        // Screenshot removed!
     };
 
-    // Prepare Payment Modal
     const upiId = campaignData.upi_id;
     const payeeName = campaignData.campaign_title.replace(/\s/g, '%20');
     const upiLink = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
@@ -402,7 +380,7 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     document.getElementById('payment-modal')?.classList.remove('hidden');
 });
 
-// --- STEP 2: USER CLICKS "I HAVE PAID" (Direct to Success & Local Storage) ---
+// --- I HAVE PAID ---
 document.getElementById('btn-paid')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-paid');
     const originalText = btn.innerHTML;
@@ -412,8 +390,6 @@ document.getElementById('btn-paid')?.addEventListener('click', async () => {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
     try {
-        // Insert to DB WITHOUT requiring a UTR or Screenshot. 
-        // We use .select() to get the inserted ID back!
         const { data: insertData, error: insertErr } = await supabase.from('donations').insert([{
             donor_name: currentDonationState.name,
             phone_number: currentDonationState.phone,
@@ -432,20 +408,30 @@ document.getElementById('btn-paid')?.addEventListener('click', async () => {
 
         if (insertErr) throw insertErr;
 
-        // --- SAVE TO LOCAL STORAGE FOR "MY TRANSACTIONS" ---
         if (insertData && insertData.length > 0) {
             let myTxns = JSON.parse(localStorage.getItem('ssf_my_txns') || '[]');
             myTxns.push(insertData[0].id);
             localStorage.setItem('ssf_my_txns', JSON.stringify(myTxns));
         }
 
-        // Hide Payment Modal, Show Success Modal & Poster
         document.getElementById('payment-modal')?.classList.add('hidden');
         document.getElementById('success-modal')?.classList.remove('hidden');
         
-        generatePoster(currentDonationState.name, currentDonationState.amount, currentDonationState.state);
+        generatePoster(
+            currentDonationState.name, 
+            currentDonationState.amount, 
+            currentDonationState.state, 
+            currentDonationState.district, 
+            currentDonationState.place
+        );
         
-        const shareMsg = `I just sponsored a student via SSF Trust with ₹${currentDonationState.amount}! Join the mission: ${window.location.href}`;
+        // --- NEW CMS WHATSAPP SHARE MESSAGE PARSER ---
+        let shareTemplate = campaignData.donor_share_template || "I just sponsored a student via SSF Trust with ₹{amount}! Join the mission: {url}";
+        const shareMsg = shareTemplate
+                            .replaceAll('{name}', currentDonationState.name)
+                            .replaceAll('{amount}', currentDonationState.amount)
+                            .replaceAll('{url}', window.location.href);
+        
         const waBtn = document.getElementById('wa-share-btn');
         if (waBtn) waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMsg)}`;
         
@@ -461,87 +447,71 @@ document.getElementById('btn-paid')?.addEventListener('click', async () => {
     }
 });
 
-// --- CANVAS POSTER GENERATION ---
-function generatePoster(name, amount, stateText) {
+// --- FULL LIVE GRAPHICS ENGINE INTEGRATION FOR PUBLIC POSTER ---
+window.generatePoster = (name, amount, stateText, districtText, placeText) => {
     const canvas = document.getElementById('poster-canvas');
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
-    const config = campaignData.poster_config;
     
-    // Fallback drawing logic if no Background URL
-    const drawElements = () => {
-        drawText(ctx, name, config.name);
-        drawText(ctx, `₹${amount}`, config.amount);
-        drawText(ctx, stateText, config.state);
-        setupDownload(canvas, name);
+    // Safely pull config generated from the Admin Panel
+    const config = campaignData.poster_config || { width: 600, height: 800, elements: [] };
+    canvas.width = config.width || 600;
+    canvas.height = config.height || 800;
+    
+    ctx.fillStyle = '#ffffff'; 
+    ctx.fillRect(0,0, canvas.width, canvas.height);
+    
+    const drawContent = () => {
+        if(config.elements && config.elements.length > 0) {
+            config.elements.forEach(el => {
+                let textToDraw = el.text;
+                if(el.fieldKey === 'donor_name') textToDraw = name;
+                if(el.fieldKey === 'amount') textToDraw = `₹${amount}`;
+                if(el.fieldKey === 'state') textToDraw = stateText || '';
+                if(el.fieldKey === 'district') textToDraw = districtText || '';
+                if(el.fieldKey === 'place') textToDraw = placeText || '';
+                if(el.fieldKey === 'date') textToDraw = new Date().toLocaleDateString();
+                if(el.fieldKey === 'time') textToDraw = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                if(el.fieldKey === 'receipt_no') textToDraw = ''; // Not generated yet at this stage
+
+                // Ensure the fonts loaded properly
+                ctx.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size || 30}px "${el.font || 'Inter'}"`;
+                ctx.fillStyle = el.color || '#000000';
+                ctx.textAlign = el.align || 'center';
+                ctx.fillText(textToDraw, el.x, el.y);
+            });
+        }
+        
+        // Setup download button automatically
+        const btn = document.getElementById('btn-download-poster');
+        if(btn) {
+            btn.onclick = () => {
+                const link = document.createElement('a');
+                link.download = `SSF_Poster_${name.replace(/\s/g, '_')}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+            };
+        }
     };
 
     if(campaignData.poster_bg_url) {
-        const bgImg = new Image();
-        bgImg.crossOrigin = "Anonymous";
+        const bgImg = new Image(); 
+        if (!campaignData.poster_bg_url.startsWith('data:')) bgImg.crossOrigin = "Anonymous"; 
+        bgImg.onload = () => { ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height); drawContent(); };
+        bgImg.onerror = () => { console.error("Poster BG failed to load."); drawContent(); };
         bgImg.src = campaignData.poster_bg_url;
-        bgImg.onload = () => {
-            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-            drawElements();
-        };
     } else {
-        // Fallback styling if admin hasn't uploaded a poster
-        ctx.fillStyle = "#0f172a"; ctx.fillRect(0,0, canvas.width, canvas.height);
-        ctx.fillStyle = "#10b981"; ctx.fillRect(0,0, canvas.width, 15);
-        drawElements();
+        drawContent(); 
     }
-}
+};
 
-function drawText(ctx, text, conf) {
-    if(!conf) return;
-    ctx.font = `bold ${conf.size}px Inter, sans-serif`;
-    ctx.fillStyle = conf.color;
-    ctx.textAlign = "center";
-    ctx.fillText(text, conf.x, conf.y);
-}
-
-function setupDownload(canvas, name) {
-    const btn = document.getElementById('btn-download-poster');
-    if(!btn) return;
-    btn.onclick = () => {
-        const link = document.createElement('a');
-        link.download = `SSF_Sponsor_${name.replace(/\s/g, '_')}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    };
-}
-
-// --- MY TRANSACTIONS ---
-document.getElementById('btn-search-txns')?.addEventListener('click', async () => {
-    const phone = document.getElementById('search-phone')?.value;
-    if(!phone) return;
-    
-    const { data } = await supabase.from('donations').select('*').eq('phone_number', phone).order('created_at', {ascending: false});
-    const resDiv = document.getElementById('my-txns-results');
-    if(!resDiv) return;
-    
-    if(!data || data.length === 0) {
-        resDiv.innerHTML = '<p class="text-slate-500 text-center">No transactions found for this phone number.</p>';
-        return;
-    }
-
-    resDiv.innerHTML = data.map(d => `
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 flex justify-between items-center shadow-sm hover:border-emerald-300 transition-colors">
-            <div>
-                <p class="font-bold text-slate-900 text-lg">₹${d.amount}</p>
-                <p class="text-xs text-slate-500">${new Date(d.created_at).toLocaleDateString()} - ${d.is_verified ? '<span class="text-emerald-600 font-bold">Verified</span>' : '<span class="text-amber-600 font-bold">Pending</span>'}</p>
-            </div>
-            <button onclick="reprintPoster('${d.donor_name}', ${d.amount}, '${d.state}')" class="text-sm bg-slate-900 hover:bg-slate-800 px-4 py-2 rounded-xl font-bold text-white transition flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> Poster</button>
-        </div>
-    `).join('');
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-});
-
-window.reprintPoster = (name, amt, state) => {
+window.reprintPoster = (name, amt, state, dist, place) => {
     document.getElementById('success-modal')?.classList.remove('hidden');
     const msg = document.getElementById('thank-you-msg');
     if(msg) msg.textContent = "Here is your generated poster!";
-    generatePoster(name, amt, state);
+    
+    // Pass the fully populated dynamic fields
+    generatePoster(name, amt, state, dist, place);
 };
 
 // Initial calls

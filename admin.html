@@ -220,10 +220,18 @@
                             <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-slate-500">End Date</label>
                             <input type="datetime-local" id="cms_end_date" class="w-full premium-input p-3.5 rounded-xl font-medium">
                         </div>
-                        <div class="md:col-span-2 border-t border-slate-200 pt-5 mt-2">
-                            <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-green-600"><i data-lucide="message-circle" class="w-4 h-4 inline"></i> WhatsApp Message Template</label>
-                            <p class="text-xs text-slate-400 mb-2">Use tags: <b>{name}</b>, <b>{amount}</b>, <b>{receipt_url}</b></p>
-                            <textarea id="cms_wa_template" rows="3" class="w-full premium-input p-3.5 rounded-xl font-medium text-sm"></textarea>
+                        <!-- WhatsApp Templates -->
+                        <div class="md:col-span-2 border-t border-slate-200 pt-5 mt-2 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-green-600"><i data-lucide="message-circle" class="w-4 h-4 inline"></i> Admin to Donor (Receipt)</label>
+                                <p class="text-xs text-slate-400 mb-2">Tags: <b>{name}</b>, <b>{amount}</b>, <b>{receipt_url}</b></p>
+                                <textarea id="cms_wa_template" rows="3" class="w-full premium-input p-3.5 rounded-xl font-medium text-sm"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest mb-1.5 text-blue-600"><i data-lucide="share-2" class="w-4 h-4 inline"></i> Donor to Friends (Share Button)</label>
+                                <p class="text-xs text-slate-400 mb-2">Tags: <b>{name}</b>, <b>{amount}</b>, <b>{url}</b></p>
+                                <textarea id="cms_donor_share" rows="3" class="w-full premium-input p-3.5 rounded-xl font-medium text-sm"></textarea>
+                            </div>
                         </div>
                     </div>
                     <button type="submit" id="btn-save-cms" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold px-8 py-4 rounded-xl shadow-lg">Save Settings</button>

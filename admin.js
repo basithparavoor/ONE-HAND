@@ -608,6 +608,7 @@ function populateCMSForms() {
     setVal('cms_upi', siteContent.upi_id || '');
     setVal('cms_thankyou', siteContent.thank_you_message || '');
     setVal('cms_wa_template', siteContent.wa_template || '');
+    setVal('cms_donor_share', siteContent.donor_share_template || '');
     
     if(siteContent.end_date) {
         const date = new Date(siteContent.end_date);
@@ -648,6 +649,7 @@ document.getElementById('cms-form')?.addEventListener('submit', async (e) => {
         end_date: endDateVal ? new Date(endDateVal).toISOString() : null,
         thank_you_message: document.getElementById('cms_thankyou')?.value || '',
         wa_template: document.getElementById('cms_wa_template')?.value || '',
+        donor_share_template: document.getElementById('cms_donor_share')?.value || '',
         logo_url: logo_url,
         banner_url: banner_url
     }).eq('id', 1);
