@@ -179,24 +179,66 @@ async function loadCampaignStats() {
         });
     }
 
-    const collected = Number(data.total_collected);
-    const studentsSponsored = Math.floor(collected / cost);
-    const targetStudents = Number(data.target_units);
-    
+   updateDOMStats(Number(data.total_collected), 'all', 'all');
+    if(data.end_date) startTimer(data.end_date);
+}
+
+function updateDOMStats(collectedAmount, stateName, districtName) {
+    if (!campaignData) return;
+    const cost = Number(campaignData.unit_cost) || 1;
+    const targetStudents = Number(campaignData.target_units) || 1;
+    const studentsSponsored = Math.floor(collectedAmount / cost);
+
     if(document.getElementById('students-sponsored')) document.getElementById('students-sponsored').textContent = studentsSponsored;
     if(document.getElementById('students-target')) document.getElementById('students-target').textContent = `/ ${targetStudents}`;
     
-    if(document.getElementById('total-collected-badge')) document.getElementById('total-collected-badge').textContent = `Total: ${formatMoney(collected)}`;
-    if(document.getElementById('total-collected-mobile')) document.getElementById('total-collected-mobile').textContent = `Total Raised: ${formatMoney(collected)}`;
-    
-    let percentage = (studentsSponsored / targetStudents) * 100;
-    setTimeout(() => { 
-        if(document.getElementById('progress-bar')) {
-            document.getElementById('progress-bar').style.width = `${Math.min(percentage, 100)}%`; 
+    const mainEl = document.getElementById('total-collected-main');
+    if(mainEl) {
+        mainEl.textContent = formatMoney(collectedAmount);
+        
+        // Dynamically change the label text above the amount
+        const labelEl = mainEl.previousElementSibling;
+        if(labelEl) {
+            if (districtName && districtName !== 'all') {
+                labelEl.textContent = `Raised in ${districtName}`;
+            } else if (stateName && stateName !== 'all') {
+                labelEl.textContent = `Raised in ${stateName}`;
+            } else {
+                labelEl.textContent = 'Total Raised';
+            }
         }
-    }, 300);
+    }
 
-    if(data.end_date) startTimer(data.end_date);
+    // Animate the progress bar based on the filtered amount
+    let percentage = (studentsSponsored / targetStudents) * 100;
+    const progBar = document.getElementById('progress-bar');
+    if(progBar) {
+        setTimeout(() => {
+            progBar.style.width = `${Math.min(percentage, 100)}%`; 
+        }, 50);
+    }
+}
+
+async function fetchFilteredStats(state, district) {
+    if (!campaignData) return;
+    
+    // Revert to global overall stats if no filter is applied
+    if (state === 'all') {
+        updateDOMStats(Number(campaignData.total_collected || 0), 'all', 'all');
+        return;
+    }
+
+    // Fetch precise sum for selected state/district
+    let query = supabase.from('donations').select('amount').eq('is_verified', true).eq('state', state);
+    if (district !== 'all' && district !== '') {
+        query = query.eq('district', district);
+    }
+
+    const { data, error } = await query;
+    if (!error && data) {
+        const filteredTotal = data.reduce((sum, row) => sum + Number(row.amount), 0);
+        updateDOMStats(filteredTotal, state, district);
+    }
 }
 
 function startTimer(endDateString) {
@@ -240,8 +282,12 @@ function filterWall() {
     const stateFilter = document.getElementById('filter-state')?.value || 'all';
     const distFilter = document.getElementById('filter-district')?.value || 'all';
     const wall = document.getElementById('donor-wall');
-    if(!wall) return;
+    
+    // ADD THIS NEW LINE HERE:
+    fetchFilteredStats(stateFilter, distFilter);
 
+    if(!wall) return;
+    
     const filtered = currentDonors.filter(d => {
         if(stateFilter !== 'all' && d.state !== stateFilter) return false;
         if(distFilter !== 'all' && distFilter !== '' && d.district !== distFilter) return false;

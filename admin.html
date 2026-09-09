@@ -144,7 +144,7 @@
                 </div>
             </div>
 
-            <!-- ADD OFFLINE ENTRY -->
+           <!-- ADD OFFLINE ENTRY -->
             <div id="tab-offline" class="hidden p-4 sm:p-6 md:p-10 max-w-3xl space-y-6 animate-fade-in-up">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Log Offline Collection</h2>
                 <form id="offline-form" class="glass-card p-6 md:p-8 rounded-3xl shadow-xl border border-white/60 space-y-5">
@@ -173,6 +173,20 @@
                             <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Place / City</label>
                             <input type="text" id="off_place" required class="w-full premium-input p-3.5 rounded-xl font-medium">
                         </div>
+                        
+                        <!-- NEW: Offline Message & Public Wall Toggle -->
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Donor Message (Optional)</label>
+                            <textarea id="off_message" rows="2" class="w-full premium-input p-3.5 rounded-xl font-medium" placeholder="Leave a message on behalf of the donor..."></textarea>
+                        </div>
+                        <div class="md:col-span-2 flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <input type="checkbox" id="off_public" checked class="mt-0.5 w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer">
+                            <label for="off_public" class="text-xs text-slate-600 font-medium leading-relaxed cursor-pointer">
+                                Display this donor's name, location, and message on the public wall. 
+                                <span class="block text-[10px] text-slate-400 font-bold mt-0.5">(If unchecked, it stays private).</span>
+                            </label>
+                        </div>
+                        
                     </div>
                     <button type="submit" class="w-full bg-slate-900 text-white font-extrabold p-4 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:-translate-y-0.5">Save Offline Entry</button>
                 </form>
