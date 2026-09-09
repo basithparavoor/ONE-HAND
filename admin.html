@@ -8,7 +8,6 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     
-    <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -45,29 +44,29 @@
 
     <div id="dashboard-section" class="hidden h-screen flex flex-col md:flex-row w-full overflow-hidden relative">
         <div class="md:hidden flex items-center justify-between bg-slate-900 text-white p-4 shadow-md z-30">
-    <div class="font-bold text-xl flex items-center gap-3">
-        <img src="adminlogo.png" class="h-8 w-auto rounded object-contain" alt="Admin Logo"> SSF Admin
-    </div>
-    <button id="mobile-menu-btn" class="p-2 bg-slate-800 rounded-lg"><i data-lucide="menu"></i></button>
-</div>
+            <div class="font-bold text-xl flex items-center gap-3">
+                <img src="adminlogo.png" class="h-8 w-auto rounded object-contain" alt="Admin Logo"> SSF Admin
+            </div>
+            <button id="mobile-menu-btn" class="p-2 bg-slate-800 rounded-lg"><i data-lucide="menu"></i></button>
+        </div>
 
-<div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
 
-<aside id="sidebar" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-50 shrink-0 h-full">
-    <div class="p-6 font-bold text-white text-xl border-b border-slate-800 hidden md:flex items-center gap-3">
-        <img src="adminlogo.png" class="h-8 w-auto rounded object-contain" alt="Admin Logo"> SSF Admin
-    </div>
-    <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-        <button id="nav-overview" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium transition-all"><i data-lucide="layout-dashboard" class="text-emerald-400"></i> Overview</button>
-        <button id="nav-verify" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="list"></i> Donations</button>
-        <button id="nav-offline" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="plus-circle"></i> Add Offline</button>
-        <button id="nav-cms" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="layout-template"></i> Page CMS</button>
-        <button id="nav-poster" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="brush"></i> Graphics Studio</button>
-    </nav>
-    <div class="p-4 border-t border-slate-800">
-        <button id="logout-btn" class="w-full text-red-400 p-3 flex items-center gap-3 rounded-xl hover:bg-red-500/10 transition-colors font-medium"><i data-lucide="log-out"></i> Logout</button>
-    </div>
-</aside>
+        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-50 shrink-0 h-full">
+            <div class="p-6 font-bold text-white text-xl border-b border-slate-800 hidden md:flex items-center gap-3">
+                <img src="adminlogo.png" class="h-8 w-auto rounded object-contain" alt="Admin Logo"> SSF Admin
+            </div>
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <button id="nav-overview" class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800 text-white font-medium transition-all"><i data-lucide="layout-dashboard" class="text-emerald-400"></i> Overview</button>
+                <button id="nav-verify" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="list"></i> Donations</button>
+                <button id="nav-offline" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="plus-circle"></i> Add Offline</button>
+                <button id="nav-cms" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="layout-template"></i> Page CMS</button>
+                <button id="nav-poster" class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 font-medium transition-colors text-slate-400"><i data-lucide="brush"></i> Graphics Studio</button>
+            </nav>
+            <div class="p-4 border-t border-slate-800">
+                <button id="logout-btn" class="w-full text-red-400 p-3 flex items-center gap-3 rounded-xl hover:bg-red-500/10 transition-colors font-medium"><i data-lucide="log-out"></i> Logout</button>
+            </div>
+        </aside>
 
         <main class="flex-1 h-full overflow-y-auto bg-transparent relative w-full">
             
@@ -98,10 +97,10 @@
                         <p class="text-sm text-slate-500 font-medium mt-1">Manage, filter, and export donation records.</p>
                     </div>
                     <div class="flex gap-2 w-full xl:w-auto flex-wrap justify-end">
-    <button id="btn-export-csv" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-emerald-500 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> CSV</button>
-    <button id="btn-export-pdf" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i> Ledger PDF</button>
-    <button id="btn-export-msg" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="message-square" class="w-4 h-4 text-indigo-500"></i> Messages PDF</button>
-</div>
+                        <button id="btn-export-csv" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 hover:border-emerald-500 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i> CSV</button>
+                        <button id="btn-export-pdf" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i> Ledger PDF</button>
+                        <button id="btn-export-msg" class="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"><i data-lucide="message-square" class="w-4 h-4 text-indigo-500"></i> Messages PDF</button>
+                    </div>
                 </div>
 
                 <!-- Filters -->
@@ -232,7 +231,7 @@
             </div>
 
             <!-- THE NEW PREMIUM GRAPHICS STUDIO TAB -->
-            <div id="tab-poster" class="hidden h-[calc(100vh-70px)] md:h-full flex-col lg:flex-row bg-slate-50 overflow-hidden relative animate-fade-in-up">
+            <div id="tab-poster" class="hidden h-[calc(100vh-70px)] md:h-full flex-col lg:flex-row overflow-hidden relative animate-fade-in-up bg-slate-50">
                 
                 <!-- Sidebar Controls (Left Panel) -->
                 <div class="w-full lg:w-[400px] bg-white border-r border-slate-200 flex flex-col h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] shrink-0 overflow-hidden">
@@ -361,59 +360,60 @@
                     </div>
                 </div>
 
-                <!-- Canvas Workspace (Artboard Area) -->
-                <div class="flex-1 overflow-auto bg-slate-100 flex flex-col items-center justify-center p-4 md:p-8 relative" id="canvas-workspace">
+                <!-- Professional Dark Mode Canvas Workspace (Artboard Area) -->
+                <div class="flex-1 overflow-auto bg-[#0f172a] grid place-items-center p-8 relative" id="canvas-workspace">
                     
-                    <!-- Dotted Grid Background -->
-                    <div class="absolute inset-0 z-0 bg-[radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:24px_24px] opacity-60"></div>
+                    <!-- Pro Workspace Dot Grid -->
+                    <div class="absolute inset-0 z-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px] opacity-50"></div>
                     
                     <!-- Workspace Toolbar -->
-                    <div class="absolute top-6 left-1/2 transform -translate-x-1/2 z-10 bg-slate-900/80 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg flex items-center gap-4 border border-white/10">
-                        <span class="flex items-center gap-2 text-xs font-bold text-white"><i data-lucide="move" class="w-4 h-4 text-emerald-400"></i> Click & Drag Elements</span>
-                        <div class="w-px h-4 bg-white/20"></div>
-                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider" id="preview-scale-indicator">Scale: Auto</span>
+                    <div class="absolute top-6 left-1/2 transform -translate-x-1/2 z-20 bg-slate-800/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex items-center gap-4 border border-slate-700">
+                        <span class="flex items-center gap-2 text-xs font-bold text-white"><i data-lucide="move" class="w-4 h-4 text-emerald-400"></i> Click & Drag to Edit Layers</span>
+                        <div class="w-px h-4 bg-slate-600"></div>
+                        <span class="text-[10px] font-bold text-emerald-300 uppercase tracking-wider" id="preview-scale-indicator">Scale: 100%</span>
                     </div>
 
                     <!-- The Artboard -->
-                    <div id="canvas-wrapper" class="relative shadow-[0_20px_50px_rgba(0,0,0,0.15)] bg-white transition-all transform origin-center z-10 border border-slate-200 rounded-sm overflow-hidden">
-                        <canvas id="studio-canvas" class="w-full h-full block cursor-move"></canvas>
+                    <div id="canvas-wrapper" class="relative shadow-[0_20px_60px_rgba(0,0,0,0.5)] bg-white transition-all transform origin-center z-10 border border-slate-700 ring-4 ring-slate-800/50 rounded-sm overflow-hidden">
+                        <!-- Checkerboard background for transparent PNGs -->
+                        <div class="absolute inset-0 z-0 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYNgvwMDA/h8EwHwWYGBg2M+AAxiRQoMwQ+k+A1L00WE00GkAUBwBAwMAq3UHA9Xp8S0AAAAASUVORK5CYII=')] opacity-20"></div>
+                        <canvas id="studio-canvas" class="w-full h-full block cursor-move relative z-10"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- UTR Verify Modal -->
-            <div id="verify-utr-modal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 hidden transition-opacity">
-                <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative text-center">
-                    <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4"><i data-lucide="shield-check" class="w-8 h-8 text-emerald-600"></i></div>
-                    <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Verify / Edit UTR</h2>
-                    <input type="hidden" id="verify_id">
-                    <input type="text" id="verify_utr" class="w-full premium-input p-4 rounded-xl font-mono text-center tracking-widest font-bold outline-none mb-6" placeholder="UTR Number (Optional)">
-                    <div class="flex gap-3">
-                        <button onclick="document.getElementById('verify-utr-modal').classList.add('hidden')" class="w-full py-4 text-slate-500 font-bold bg-slate-100 rounded-xl">Cancel</button>
-                        <button id="btn-confirm-verify" onclick="submitVerification()" class="w-full bg-emerald-500 text-white font-extrabold py-4 rounded-xl">Save</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Hidden Canvas for Actual Generation -->
-            <canvas id="hidden-receipt-canvas" class="hidden"></canvas>
         </main>
     </div>
 
-    <!-- Message View Modal -->
-            <div id="message-modal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 hidden transition-opacity">
-                <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative">
-                    <button onclick="document.getElementById('message-modal').classList.add('hidden')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-900 bg-slate-100 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
-                    <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center mb-5"><i data-lucide="message-square-quote" class="w-6 h-6 text-indigo-600"></i></div>
-                    <h2 class="text-xl font-extrabold text-slate-900 mb-1" id="msg-modal-name">Donor Name</h2>
-                    <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-4" id="msg-modal-date">Date</p>
-                    <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl text-slate-700 italic text-sm leading-relaxed shadow-inner" id="msg-modal-text"></div>
-                </div>
+    <!-- Modals -->
+    <!-- UTR Verify Modal -->
+    <div id="verify-utr-modal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 hidden transition-opacity">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative text-center">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4"><i data-lucide="shield-check" class="w-8 h-8 text-emerald-600"></i></div>
+            <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Verify / Edit UTR</h2>
+            <input type="hidden" id="verify_id">
+            <input type="text" id="verify_utr" class="w-full premium-input p-4 rounded-xl font-mono text-center tracking-widest font-bold outline-none mb-6" placeholder="UTR Number (Optional)">
+            <div class="flex gap-3">
+                <button onclick="document.getElementById('verify-utr-modal').classList.add('hidden')" class="w-full py-4 text-slate-500 font-bold bg-slate-100 rounded-xl">Cancel</button>
+                <button id="btn-confirm-verify" onclick="submitVerification()" class="w-full bg-emerald-500 text-white font-extrabold py-4 rounded-xl">Save</button>
             </div>
+        </div>
+    </div>
 
-            <!-- Hidden Canvases for Graphics Generation -->
-            <canvas id="hidden-receipt-canvas" class="hidden"></canvas>
-            <canvas id="hidden-poster-canvas" class="hidden"></canvas>
+    <!-- Message View Modal -->
+    <div id="message-modal" class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/90 backdrop-blur-md p-4 hidden transition-opacity">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl relative">
+            <button onclick="document.getElementById('message-modal').classList.add('hidden')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-900 bg-slate-100 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center mb-5"><i data-lucide="message-square-quote" class="w-6 h-6 text-indigo-600"></i></div>
+            <h2 class="text-xl font-extrabold text-slate-900 mb-1" id="msg-modal-name">Donor Name</h2>
+            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-4" id="msg-modal-date">Date</p>
+            <div class="bg-slate-50 border border-slate-200 p-5 rounded-xl text-slate-700 italic text-sm leading-relaxed shadow-inner" id="msg-modal-text"></div>
+        </div>
+    </div>
+
+    <!-- Hidden Canvases for Background Graphics Generation -->
+    <canvas id="hidden-receipt-canvas" class="hidden"></canvas>
+    <canvas id="hidden-poster-canvas" class="hidden"></canvas>
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script type="module" src="admin.js"></script>

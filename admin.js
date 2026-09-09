@@ -97,13 +97,7 @@ function toggleSidebar() {
 mobileMenuBtn?.addEventListener('click', toggleSidebar);
 sidebarOverlay?.addEventListener('click', toggleSidebar);
 
-window.addEventListener('resize', () => {
-    if(!document.getElementById('tab-poster')?.classList.contains('hidden')) {
-        renderStudioCanvas();
-    }
-});
-
-// --- TAB ROUTING ---
+// --- TAB ROUTING (FIXED FLEXBOX ISSUE) ---
 function switchTab(activeKey) {
     const tabs = ['overview', 'verify', 'offline', 'cms', 'poster'];
     
@@ -111,7 +105,16 @@ function switchTab(activeKey) {
         const content = document.getElementById(`tab-${key}`);
         const btn = document.getElementById(`nav-${key}`);
         
-        if(content) content.classList.toggle('hidden', key !== activeKey);
+        if(content) {
+            if (key === activeKey) {
+                content.classList.remove('hidden');
+                // Crucial fix: Inject flex to prevent container collapsing
+                if (key === 'poster' || key === 'verify') content.classList.add('flex');
+            } else {
+                content.classList.add('hidden');
+                content.classList.remove('flex');
+            }
+        }
         
         if(btn) {
             btn.className = key === activeKey 
@@ -123,10 +126,6 @@ function switchTab(activeKey) {
                 if(key === activeKey) icon.classList.add('text-emerald-400');
                 else icon.classList.remove('text-emerald-400');
             }
-        }
-        
-        if(key === 'poster' && activeKey === 'poster') {
-            setTimeout(renderStudioCanvas, 50);
         }
     });
 
@@ -474,29 +473,21 @@ window.processWhatsAppReceipt = async (id) => {
 
 // --- PREMIUM PDF GENERATION SETUP ---
 const applyPremiumPDFHeader = (doc, title, subtitle) => {
-    // Top Brand Bar
-    doc.setFillColor(15, 23, 42); // slate-900
+    doc.setFillColor(15, 23, 42); 
     doc.rect(0, 0, doc.internal.pageSize.width, 35, 'F');
-    
-    // Campaign Title
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
     doc.text(siteContent.campaign_title || "SSF Trust Campaign", 14, 20);
-    
-    // Sub Header
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(title, 14, 28);
-    
-    // Meta Data
-    doc.setTextColor(100, 116, 139); // slate-500
+    doc.setTextColor(100, 116, 139); 
     doc.setFontSize(9);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 45);
     if(subtitle) doc.text(subtitle, 14, 51);
 };
 
-// CSV Export
 document.getElementById('btn-export-csv')?.addEventListener('click', () => {
     if(!currentDonations.length) return;
     const headers = "Date,Receipt No,Name,Phone,State,Amount,Source,Status\n";
@@ -509,7 +500,6 @@ document.getElementById('btn-export-csv')?.addEventListener('click', () => {
     const a = document.createElement('a'); a.href = url; a.download = `SSF_Report_${Date.now()}.csv`; a.click();
 });
 
-// Premium Ledger PDF
 document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
     if(!window.jspdf) return Toastify({ text: "PDF Engine Loading...", style: {background: "#ef4444"} }).showToast();
     const doc = new window.jspdf.jsPDF();
@@ -530,7 +520,7 @@ document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
         head: [['Date', 'Receipt No', 'Donor Name', 'Phone', 'Amount', 'Status']],
         body: tableData,
         theme: 'striped',
-        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' }, // Emerald
+        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' }, 
         alternateRowStyles: { fillColor: [248, 250, 252] },
         styles: { fontSize: 9, cellPadding: 4 }
     });
@@ -538,7 +528,6 @@ document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
     doc.save(`SSF_Donation_Report_${Date.now()}.pdf`);
 });
 
-// Premium Messages PDF
 document.getElementById('btn-export-msg')?.addEventListener('click', () => {
     if(!window.jspdf) return Toastify({ text: "PDF Engine Loading...", style: {background: "#ef4444"} }).showToast();
     
@@ -559,7 +548,7 @@ document.getElementById('btn-export-msg')?.addEventListener('click', () => {
         head: [['Date', 'Donor Name', 'Attached Message']],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' }, // Indigo
+        headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' }, 
         bodyStyles: { textColor: 50 },
         columnStyles: { 2: { cellWidth: 100 } },
         styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' }
@@ -567,8 +556,6 @@ document.getElementById('btn-export-msg')?.addEventListener('click', () => {
 
     doc.save(`SSF_Donor_Messages_${Date.now()}.pdf`);
 });
-
-
 
 // --- OFFLINE ENTRY ---
 document.getElementById('offline-form')?.addEventListener('submit', async (e) => {
@@ -659,19 +646,30 @@ document.getElementById('cms-form')?.addEventListener('submit', async (e) => {
     loadData();
 });
 
-
-// --- LIVE GRAPHICS STUDIO (Drag & Drop Canvas) ---
+// --- LIVE GRAPHICS STUDIO (Drag & Drop Canvas with Mathematical Resizing Engine) ---
 let currentGfxModeStudio = 'poster';
 let gfxState = { width: 600, height: 800, elements: [], bg_url: null };
 let selectedElementId = null;
 let bgImageObj = null;
+
+const canvasStudio = document.getElementById('studio-canvas');
+const ctxStudio = canvasStudio ? canvasStudio.getContext('2d') : null;
 let isDragging = false;
 let dragOffsetX = 0; let dragOffsetY = 0;
 let currentRenderScale = 1; 
 
 function initGraphicsStudio() {
-    attachCanvasEvents();
-    switchGfxMode('poster');
+    document.fonts.ready.then(() => {
+        switchGfxMode('poster');
+    });
+    
+    // Resize Observer for bulletproof window resizing
+    const workspace = document.getElementById('canvas-workspace');
+    if (workspace) {
+        new ResizeObserver(() => {
+            if (workspace.clientWidth > 0) renderStudioCanvas();
+        }).observe(workspace);
+    }
 }
 
 function switchGfxMode(mode) {
@@ -685,14 +683,12 @@ function switchGfxMode(mode) {
     
     const rawConf = mode === 'poster' ? siteContent.poster_config : siteContent.receipt_config;
     
-    // Safely deeply copy config to avoid modifying siteContent directly
     if(rawConf && Array.isArray(rawConf.elements)) {
         gfxState = JSON.parse(JSON.stringify(rawConf));
     } else {
         gfxState = { width: 600, height: 800, elements: [] };
     }
     
-    // Explicitly grab the bg_url from the top-level DB column so it doesn't get lost
     gfxState.bg_url = mode === 'poster' ? siteContent.poster_bg_url : siteContent.receipt_bg_url;
     
     document.getElementById('gfx_w').value = gfxState.width || 600;
@@ -758,13 +754,8 @@ document.getElementById('btn-add-element')?.addEventListener('click', () => {
     renderStudioCanvas();
 });
 
-
-function attachCanvasEvents() {
-    const canvasStudio = document.getElementById('studio-canvas');
-    if(!canvasStudio) return;
-
+if(canvasStudio) {
     canvasStudio.addEventListener('mousedown', (e) => {
-        const ctxStudio = canvasStudio.getContext('2d');
         const rect = canvasStudio.getBoundingClientRect();
         
         const scaleX = canvasStudio.width / rect.width;
@@ -813,11 +804,8 @@ function attachCanvasEvents() {
     canvasStudio.addEventListener('mouseleave', () => isDragging = false);
 }
 
-
 function renderStudioCanvas() {
-    const canvasStudio = document.getElementById('studio-canvas');
-    if(!canvasStudio) return;
-    const ctxStudio = canvasStudio.getContext('2d');
+    if(!canvasStudio || !ctxStudio) return;
     
     canvasStudio.width = gfxState.width || 600;
     canvasStudio.height = gfxState.height || 800;
@@ -827,6 +815,8 @@ function renderStudioCanvas() {
     const scaleIndicator = document.getElementById('preview-scale-indicator');
 
     if(workspace && wrapper) {
+        if(workspace.clientWidth === 0) return; // Wait until container opens
+
         const maxWidth = Math.max(workspace.clientWidth - 60, 200);
         const maxHeight = Math.max(workspace.clientHeight - 80, 200);
         
@@ -834,8 +824,8 @@ function renderStudioCanvas() {
         const scaleY = maxHeight / (canvasStudio.height || 1);
         currentRenderScale = Math.min(scaleX, scaleY, 1); 
 
-        const finalWidth = Math.max(canvasStudio.width * currentRenderScale, 100);
-        const finalHeight = Math.max(canvasStudio.height * currentRenderScale, 100);
+        const finalWidth = canvasStudio.width * currentRenderScale;
+        const finalHeight = canvasStudio.height * currentRenderScale;
 
         wrapper.style.width = `${finalWidth}px`;
         wrapper.style.height = `${finalHeight}px`;
@@ -845,7 +835,6 @@ function renderStudioCanvas() {
         }
     }
 
-    // ALWAYS draw solid white background to prevent blanking out
     ctxStudio.fillStyle = '#ffffff'; 
     ctxStudio.fillRect(0,0, canvasStudio.width, canvasStudio.height);
     
