@@ -396,6 +396,7 @@ window.downloadPoster = async (id) => {
     }
 };
 
+// --- WHATSAPP RECEIPT ENGINE ---
 window.processWhatsAppReceipt = async (id) => {
     const donation = currentDonations.find(d => d.id === id);
     if(!donation || !donation.phone_number) return Toastify({ text: "No phone number attached.", style: {background: "#ef4444"} }).showToast();
@@ -442,15 +443,30 @@ window.processWhatsAppReceipt = async (id) => {
         }
 
         canvas.toBlob(async (blob) => {
-            const fileName = `rec_${id}_${Date.now()}.jpg`;
-            const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob);
-            if(error) return Toastify({ text: "Upload failed", style: {background: "#ef4444"} }).showToast();
+            // 1. Create a super clean, short file name
+            const fileName = `SSF_Receipt_${recNo}.jpg`;
             
-            const recUrl = supabase.storage.from('receipts').getPublicUrl(fileName).data.publicUrl;
+            const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, {
+                contentType: 'image/jpeg',
+                upsert: true
+            });
+            
+            if(error) {
+                console.error("Upload error:", error);
+                return Toastify({ text: "Upload failed", style: {background: "#ef4444"} }).showToast();
+            }
+            
+            // 2. CREATE THE PRO LINK ON YOUR OWN DOMAIN
+            const proLink = `${window.location.origin}/receipt.html?f=${fileName}`;
+            
             await supabase.from('donations').update({ msg_sent: true }).eq('id', id);
             
             let template = siteContent.wa_template || "Thank you {name} for ₹{amount}. Receipt: {receipt_url}";
-            template = template.replace('{name}', donation.donor_name).replace('{amount}', donation.amount).replace('{receipt_url}', recUrl);
+            
+            // Use replaceAll to inject the Pro Link perfectly
+            template = template.replaceAll('{name}', donation.donor_name)
+                               .replaceAll('{amount}', donation.amount)
+                               .replaceAll('{receipt_url}', proLink);
             
             let waNum = donation.phone_number.replace(/\D/g,'');
             if(waNum.length === 10) waNum = '91' + waNum;
