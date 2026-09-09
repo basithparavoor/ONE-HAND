@@ -169,7 +169,7 @@ function setupAdminLocations() {
     document.getElementById(id)?.addEventListener('input', renderTable);
 });
 
-// --- CORE DATA LOAD ---
+// --- CORE DATA FETCHING & REALTIME ---
 async function loadData() {
     const [donationsRes, cmsRes] = await Promise.all([
         supabase.from('donations').select('*').order('created_at', { ascending: false }),
@@ -183,6 +183,28 @@ async function loadData() {
     renderTable();
     populateCMSForms();
     initGraphicsStudio();
+
+    // LIVE SUPABASE SUBSCRIPTION
+    supabase.channel('admin_donations_channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'donations' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+                // Flag it as new so the table can animate it
+                payload.new.is_new = true; 
+                currentDonations.unshift(payload.new);
+                Toastify({ text: "New Donation Received!", style: { background: "#10b981" } }).showToast();
+                
+                // Remove the highlight flag after 3 seconds
+                setTimeout(() => { delete payload.new.is_new; renderTable(); }, 3000);
+            } else if (payload.eventType === 'UPDATE') {
+                const idx = currentDonations.findIndex(d => d.id === payload.new.id);
+                if (idx !== -1) currentDonations[idx] = payload.new;
+            } else if (payload.eventType === 'DELETE') {
+                currentDonations = currentDonations.filter(d => d.id !== payload.old.id);
+            }
+            updateAnalytics();
+            renderTable();
+        })
+        .subscribe();
 }
 
 function updateAnalytics() {
@@ -243,8 +265,8 @@ function renderTable() {
         const utrString = d.transaction_ref && d.transaction_ref !== 'null' ? d.transaction_ref : '';
         const hasMsg = d.donor_message && d.donor_message.trim() !== '';
         
-        return `
-        <tr class="hover:bg-slate-50/80 transition-colors group border-b border-slate-100">
+       return `
+        <tr class="transition-colors group border-b border-slate-100 ${d.is_new ? 'bg-emerald-50 animate-pulse' : 'hover:bg-slate-50/80'}">
             <td class="p-4 align-top">
                 <p class="font-extrabold text-slate-900 text-sm">${d.donor_name}</p>
                 ${formatPhone}
@@ -443,27 +465,20 @@ window.processWhatsAppReceipt = async (id) => {
         }
 
         canvas.toBlob(async (blob) => {
-            // 1. Create a super clean, short file name
             const fileName = `SSF_Receipt_${recNo}.jpg`;
-            
             const { data, error } = await supabase.storage.from('receipts').upload(fileName, blob, {
                 contentType: 'image/jpeg',
                 upsert: true
             });
             
-            if(error) {
-                console.error("Upload error:", error);
-                return Toastify({ text: "Upload failed", style: {background: "#ef4444"} }).showToast();
-            }
+            if(error) return Toastify({ text: "Upload failed", style: {background: "#ef4444"} }).showToast();
             
-            // 2. CREATE THE PRO LINK ON YOUR OWN DOMAIN
-            const proLink = `${window.location.origin}/receipt.html?f=${fileName}`;
+            // CLEAN ROOT URL FORMAT (e.g., domain.com/receipt.html?1042)
+            const proLink = `${window.location.origin}/receipt.html?${recNo}`;
             
             await supabase.from('donations').update({ msg_sent: true }).eq('id', id);
             
             let template = siteContent.wa_template || "Thank you {name} for ₹{amount}. Receipt: {receipt_url}";
-            
-            // Use replaceAll to inject the Pro Link perfectly
             template = template.replaceAll('{name}', donation.donor_name)
                                .replaceAll('{amount}', donation.amount)
                                .replaceAll('{receipt_url}', proLink);

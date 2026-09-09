@@ -387,7 +387,7 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     document.getElementById('payment-modal')?.classList.remove('hidden');
 });
 
-// --- I HAVE PAID ---
+// --- I HAVE PAID (WITH NATIVE WEB SHARE API) ---
 document.getElementById('btn-paid')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-paid');
     const originalText = btn.innerHTML;
@@ -432,17 +432,49 @@ document.getElementById('btn-paid')?.addEventListener('click', async () => {
             currentDonationState.place
         );
         
-        // --- NEW CMS WHATSAPP SHARE MESSAGE PARSER ---
-        let shareTemplate = campaignData.donor_share_template || "I just sponsored a student via SSF Trust with ₹{amount}! Join the mission: {url}";
-        const cleanUrl = window.location.origin + window.location.pathname; // Strips out ugly query strings
-        
-        const shareMsg = shareTemplate
-                            .replaceAll('{name}', currentDonationState.name)
-                            .replaceAll('{amount}', currentDonationState.amount)
-                            .replaceAll('{url}', cleanUrl);
-        
+        // --- NATIVE WEB SHARE API ENGINE ---
         const waBtn = document.getElementById('wa-share-btn');
-        if (waBtn) waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMsg)}`;
+        if (waBtn) {
+            waBtn.onclick = async (e) => {
+                e.preventDefault();
+                const canvas = document.getElementById('poster-canvas');
+                
+                // Parse the CMS Share text
+                let shareTemplate = campaignData.donor_share_template || "I just sponsored a student via SSF Trust with ₹{amount}! Join the mission: {url}";
+                const cleanUrl = window.location.origin + window.location.pathname; 
+                const shareMsg = shareTemplate
+                                    .replaceAll('{name}', currentDonationState.name)
+                                    .replaceAll('{amount}', currentDonationState.amount)
+                                    .replaceAll('{url}', cleanUrl);
+
+                // Attempt to use Native OS Sharing (Android/iOS)
+                if (navigator.share && canvas) {
+                    try {
+                        canvas.toBlob(async (blob) => {
+                            const file = new File([blob], `SSF_Contribution_${currentDonationState.name.replace(/\s/g, '_')}.jpg`, { type: 'image/jpeg' });
+                            
+                            // Check if OS allows sharing files (Images)
+                            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                await navigator.share({
+                                    title: 'SSF Trust Donation',
+                                    text: shareMsg,
+                                    files: [file]
+                                });
+                            } else {
+                                // Fallback: Share Text/Link only via Native OS
+                                await navigator.share({ title: 'SSF Trust Donation', text: shareMsg });
+                            }
+                        }, 'image/jpeg', 0.9);
+                        return;
+                    } catch (err) {
+                        console.log("Native share failed/cancelled by user.");
+                    }
+                } else {
+                    // Ultimate Fallback: Direct WhatsApp Web Link for Desktop
+                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareMsg)}`, '_blank');
+                }
+            };
+        }
         
         if (typeof confetti !== 'undefined') confetti({ particleCount: 150, spread: 80, origin: {y: 0.6} });
 
