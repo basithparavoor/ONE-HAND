@@ -79,7 +79,6 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
 
 document.getElementById('logout-btn')?.addEventListener('click', () => supabase.auth.signOut());
 
-
 // --- MOBILE MENU TOGGLE ---
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
@@ -98,7 +97,6 @@ function toggleSidebar() {
 mobileMenuBtn?.addEventListener('click', toggleSidebar);
 sidebarOverlay?.addEventListener('click', toggleSidebar);
 
-// Resize listener for Canvas recalculation
 window.addEventListener('resize', () => {
     if(!document.getElementById('tab-poster')?.classList.contains('hidden')) {
         renderStudioCanvas();
@@ -127,9 +125,8 @@ function switchTab(activeKey) {
             }
         }
         
-        // Re-render canvas properly
         if(key === 'poster' && activeKey === 'poster') {
-            setTimeout(renderStudioCanvas, 100);
+            setTimeout(renderStudioCanvas, 50);
         }
     });
 
@@ -141,7 +138,6 @@ function switchTab(activeKey) {
 ['overview', 'verify', 'offline', 'cms', 'poster'].forEach(k => {
     document.getElementById(`nav-${k}`)?.addEventListener('click', () => switchTab(k));
 });
-
 
 // --- LOCATIONS & FILTERS ---
 function setupAdminLocations() {
@@ -173,7 +169,6 @@ function setupAdminLocations() {
 ['f_search', 'f_status', 'f_msg', 'f_date_from', 'f_date_to'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', renderTable);
 });
-
 
 // --- CORE DATA LOAD ---
 async function loadData() {
@@ -215,7 +210,6 @@ function injectCustomFonts() {
     }
 }
 
-
 // --- ADVANCED TABLE & UTR VERIFICATION ---
 function renderTable() {
     const tbody = document.getElementById('donations-tbody');
@@ -225,7 +219,7 @@ function renderTable() {
     const state = document.getElementById('f_state')?.value || 'all';
     const dist = document.getElementById('f_district')?.value || 'all';
     const status = document.getElementById('f_status')?.value || 'all';
-    const msg = document.getElementById('f_msg')?.value || 'all';
+    const msgFilter = document.getElementById('f_msg')?.value || 'all';
     const dFrom = document.getElementById('f_date_from')?.value;
     const dTo = document.getElementById('f_date_to')?.value;
 
@@ -235,8 +229,8 @@ function renderTable() {
         if (dist !== 'all' && d.district !== dist) return false;
         if (status === 'verified' && !d.is_verified) return false;
         if (status === 'pending' && d.is_verified) return false;
-        if (msg === 'sent' && !d.msg_sent) return false;
-        if (msg === 'unsent' && d.msg_sent) return false;
+        if (msgFilter === 'sent' && !d.msg_sent) return false;
+        if (msgFilter === 'unsent' && d.msg_sent) return false;
         
         const dDate = new Date(d.created_at);
         if (dFrom && dDate < new Date(dFrom)) return false;
@@ -246,35 +240,40 @@ function renderTable() {
 
     tbody.innerHTML = filtered.map(d => {
         const dDate = new Date(d.created_at);
-        const formatPhone = d.phone_number ? `<p class="text-xs text-slate-500 font-mono"><i data-lucide="phone" class="w-3 h-3 inline"></i> ${d.phone_number}</p>` : '';
+        const formatPhone = d.phone_number ? `<p class="text-xs text-slate-500 font-mono mt-1"><i data-lucide="phone" class="w-3 h-3 inline"></i> ${d.phone_number}</p>` : '';
         const utrString = d.transaction_ref && d.transaction_ref !== 'null' ? d.transaction_ref : '';
+        const hasMsg = d.donor_message && d.donor_message.trim() !== '';
         
         return `
         <tr class="hover:bg-slate-50/80 transition-colors group border-b border-slate-100">
-            <td class="p-4">
+            <td class="p-4 align-top">
                 <p class="font-extrabold text-slate-900 text-sm">${d.donor_name}</p>
                 ${formatPhone}
                 <p class="text-[10px] text-slate-400 mt-1">${dDate.toLocaleDateString()} at ${dDate.toLocaleTimeString([],{hour:'2-digit', minute:'2-digit'})}</p>
+                ${hasMsg ? `<button onclick="viewMessage('${d.id}')" class="mt-2 inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-md hover:bg-indigo-100 transition-colors"><i data-lucide="message-square-quote" class="w-3 h-3"></i> Read Message</button>` : ''}
             </td>
-            <td class="p-4">
+            <td class="p-4 align-top">
                 <p class="text-sm font-bold text-slate-700">${d.place || '-'}</p>
                 <p class="text-xs text-slate-500">${d.district ? d.district+', ' : ''}${d.state || '-'}</p>
             </td>
-            <td class="p-4">
+            <td class="p-4 align-top">
                 <p class="font-black text-emerald-600 text-base">₹${d.amount}</p>
                 <p class="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${d.is_offline ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}">
                     ${d.is_offline ? 'OFFLINE' : 'UTR: ' + (utrString || 'Not Set')}
                 </p>
             </td>
-            <td class="p-4 text-center">
+            <td class="p-4 text-center align-top space-y-2">
                 ${d.is_verified ? `
-                    <button onclick="processWhatsAppReceipt('${d.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 mx-auto ${d.msg_sent ? 'bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20' : 'bg-slate-900 text-white hover:bg-slate-800'}">
-                        <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> ${d.msg_sent ? 'Resend WA' : 'Send Receipt'}
+                    <button onclick="processWhatsAppReceipt('${d.id}')" class="w-full justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all shadow-sm flex items-center gap-1.5 mx-auto ${d.msg_sent ? 'bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20' : 'bg-slate-900 text-white hover:bg-slate-800'}">
+                        <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> ${d.msg_sent ? 'Resend WA' : 'WA Receipt'}
+                    </button>
+                    <button onclick="downloadPoster('${d.id}')" class="w-full justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all shadow-sm flex items-center gap-1.5 mx-auto bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Get Poster
                     </button>
                     ${d.receipt_number ? `<p class="text-[9px] text-slate-400 font-mono mt-1">Rec: #${d.receipt_number}</p>` : ''}
                 ` : '<span class="text-xs text-slate-400 italic">Verify first</span>'}
             </td>
-            <td class="p-4 text-right">
+            <td class="p-4 text-right align-top">
                 <div class="flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     ${!d.is_verified 
                         ? `<button onclick="openVerifyModal('${d.id}', '${utrString}')" class="p-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 shadow-sm" title="Verify Payment"><i data-lucide="check" class="w-4 h-4"></i></button>` 
@@ -287,6 +286,15 @@ function renderTable() {
     
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
+
+window.viewMessage = (id) => {
+    const d = currentDonations.find(x => x.id === id);
+    if(!d) return;
+    document.getElementById('msg-modal-name').textContent = d.donor_name;
+    document.getElementById('msg-modal-date').textContent = new Date(d.created_at).toLocaleString();
+    document.getElementById('msg-modal-text').textContent = `"${d.donor_message}"`;
+    document.getElementById('message-modal').classList.remove('hidden');
+};
 
 window.openVerifyModal = (id, currentUtr) => {
     document.getElementById('verify_id').value = id;
@@ -301,9 +309,7 @@ window.submitVerification = async () => {
     
     if (utr) {
         const duplicate = currentDonations.find(d => d.transaction_ref === utr && d.id !== id);
-        if (duplicate) {
-            if(!confirm(`Warning! UTR ${utr} is already associated with a donation by ${duplicate.donor_name}. Do you want to proceed anyway?`)) return;
-        }
+        if (duplicate && !confirm(`Warning! UTR ${utr} is already associated with a donation by ${duplicate.donor_name}. Do you want to proceed anyway?`)) return;
     }
 
     const originalText = btn.innerHTML;
@@ -321,7 +327,6 @@ window.submitVerification = async () => {
     }
 
     await supabase.from('donations').update(updateData).eq('id', id);
-    
     Toastify({ text: existingDonation.is_verified ? "UTR Updated Successfully" : "Donation Verified Successfully", style: { background: "#10b981" } }).showToast();
     document.getElementById('verify-utr-modal').classList.add('hidden');
     
@@ -337,8 +342,61 @@ window.deleteDonation = async (id) => {
     }
 };
 
+// --- GRAPHICS & WHATSAPP ENGINE ---
+window.downloadPoster = async (id) => {
+    const donation = currentDonations.find(d => d.id === id);
+    if(!donation) return;
+    
+    Toastify({ text: "Generating Poster...", style: { background: "#10b981" } }).showToast();
 
-// --- WHATSAPP RECEIPT ENGINE ---
+    const canvas = document.getElementById('hidden-poster-canvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    const config = siteContent.poster_config || { width: 600, height: 800, elements: [] };
+    canvas.width = config.width || 600;
+    canvas.height = config.height || 800;
+    
+    ctx.fillStyle = '#ffffff'; 
+    ctx.fillRect(0,0, canvas.width, canvas.height);
+    
+    const drawContent = () => {
+        if(config.elements) {
+            config.elements.forEach(el => {
+                let textToDraw = el.text;
+                if(el.fieldKey === 'donor_name') textToDraw = donation.donor_name;
+                if(el.fieldKey === 'amount') textToDraw = `₹${donation.amount}`;
+                if(el.fieldKey === 'state') textToDraw = donation.state || '';
+                if(el.fieldKey === 'district') textToDraw = donation.district || '';
+                if(el.fieldKey === 'place') textToDraw = donation.place || '';
+                if(el.fieldKey === 'date') textToDraw = new Date(donation.created_at).toLocaleDateString();
+                if(el.fieldKey === 'time') textToDraw = new Date(donation.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                if(el.fieldKey === 'receipt_no') textToDraw = donation.receipt_number ? `No: ${donation.receipt_number}` : '';
+
+                ctx.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size || 30}px "${el.font || 'Inter'}"`;
+                ctx.fillStyle = el.color || '#000000';
+                ctx.textAlign = el.align || 'center';
+                ctx.fillText(textToDraw, el.x, el.y);
+            });
+        }
+
+        const link = document.createElement('a');
+        link.download = `SSF_Poster_${donation.donor_name.replace(/\s/g, '_')}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+    };
+
+    if(siteContent.poster_bg_url) {
+        const img = new Image(); 
+        if (!siteContent.poster_bg_url.startsWith('data:')) img.crossOrigin = "Anonymous"; 
+        img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); drawContent(); };
+        img.onerror = () => { console.error("Poster BG failed to load."); drawContent(); };
+        img.src = siteContent.poster_bg_url;
+    } else {
+        drawContent(); 
+    }
+};
+
 window.processWhatsAppReceipt = async (id) => {
     const donation = currentDonations.find(d => d.id === id);
     if(!donation || !donation.phone_number) return Toastify({ text: "No phone number attached.", style: {background: "#ef4444"} }).showToast();
@@ -357,12 +415,12 @@ window.processWhatsAppReceipt = async (id) => {
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    // Load config
     const config = siteContent.receipt_config || { width: 600, height: 800, elements: [] };
     canvas.width = config.width || 600;
     canvas.height = config.height || 800;
     
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ffffff'; 
+    ctx.fillRect(0,0, canvas.width, canvas.height);
     
     const drawContent = async () => {
         if(config.elements) {
@@ -377,9 +435,9 @@ window.processWhatsAppReceipt = async (id) => {
                 if(el.fieldKey === 'time') textToDraw = new Date(donation.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 if(el.fieldKey === 'receipt_no') textToDraw = `No: ${recNo}`;
 
-                ctx.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size}px ${el.font}`;
-                ctx.fillStyle = el.color;
-                ctx.textAlign = el.align;
+                ctx.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size || 30}px "${el.font || 'Inter'}"`;
+                ctx.fillStyle = el.color || '#000000';
+                ctx.textAlign = el.align || 'center';
                 ctx.fillText(textToDraw, el.x, el.y);
             });
         }
@@ -404,14 +462,41 @@ window.processWhatsAppReceipt = async (id) => {
     };
 
     if(siteContent.receipt_bg_url) {
-        const img = new Image(); img.crossOrigin = "Anonymous"; img.src = siteContent.receipt_bg_url;
+        const img = new Image(); 
+        if (!siteContent.receipt_bg_url.startsWith('data:')) img.crossOrigin = "Anonymous"; 
         img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); drawContent(); };
+        img.onerror = () => { console.error("Receipt BG failed to load, bypassing."); drawContent(); };
+        img.src = siteContent.receipt_bg_url;
     } else {
         drawContent(); 
     }
 };
 
-// --- PDF & CSV EXPORTS ---
+// --- PREMIUM PDF GENERATION SETUP ---
+const applyPremiumPDFHeader = (doc, title, subtitle) => {
+    // Top Brand Bar
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, doc.internal.pageSize.width, 35, 'F');
+    
+    // Campaign Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text(siteContent.campaign_title || "SSF Trust Campaign", 14, 20);
+    
+    // Sub Header
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(title, 14, 28);
+    
+    // Meta Data
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.setFontSize(9);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 45);
+    if(subtitle) doc.text(subtitle, 14, 51);
+};
+
+// CSV Export
 document.getElementById('btn-export-csv')?.addEventListener('click', () => {
     if(!currentDonations.length) return;
     const headers = "Date,Receipt No,Name,Phone,State,Amount,Source,Status\n";
@@ -424,15 +509,12 @@ document.getElementById('btn-export-csv')?.addEventListener('click', () => {
     const a = document.createElement('a'); a.href = url; a.download = `SSF_Report_${Date.now()}.csv`; a.click();
 });
 
+// Premium Ledger PDF
 document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
     if(!window.jspdf) return Toastify({ text: "PDF Engine Loading...", style: {background: "#ef4444"} }).showToast();
     const doc = new window.jspdf.jsPDF();
     
-    doc.setFontSize(18);
-    doc.text("SSF Trust - Donation Report", 14, 22);
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+    applyPremiumPDFHeader(doc, "Official Donation Ledger", `Total Records: ${currentDonations.length}`);
     
     const tableData = currentDonations.map(d => [
         new Date(d.created_at).toLocaleDateString(),
@@ -444,16 +526,49 @@ document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
     ]);
 
     doc.autoTable({
-        startY: 36,
+        startY: 56,
         head: [['Date', 'Receipt No', 'Donor Name', 'Phone', 'Amount', 'Status']],
         body: tableData,
         theme: 'striped',
-        headStyles: { fillColor: [16, 185, 129] },
-        styles: { fontSize: 9 }
+        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' }, // Emerald
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        styles: { fontSize: 9, cellPadding: 4 }
     });
 
     doc.save(`SSF_Donation_Report_${Date.now()}.pdf`);
 });
+
+// Premium Messages PDF
+document.getElementById('btn-export-msg')?.addEventListener('click', () => {
+    if(!window.jspdf) return Toastify({ text: "PDF Engine Loading...", style: {background: "#ef4444"} }).showToast();
+    
+    const msgs = currentDonations.filter(d => d.donor_message && d.donor_message.trim() !== '');
+    if(!msgs.length) return Toastify({text: "No donor messages to export.", style: {background: "#ef4444"}}).showToast();
+
+    const doc = new window.jspdf.jsPDF();
+    applyPremiumPDFHeader(doc, "Donor Messages Report", `Total Messages: ${msgs.length}`);
+    
+    const tableData = msgs.map(d => [
+        new Date(d.created_at).toLocaleDateString(),
+        d.donor_name,
+        d.donor_message
+    ]);
+
+    doc.autoTable({
+        startY: 56,
+        head: [['Date', 'Donor Name', 'Attached Message']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' }, // Indigo
+        bodyStyles: { textColor: 50 },
+        columnStyles: { 2: { cellWidth: 100 } },
+        styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' }
+    });
+
+    doc.save(`SSF_Donor_Messages_${Date.now()}.pdf`);
+});
+
+
 
 // --- OFFLINE ENTRY ---
 document.getElementById('offline-form')?.addEventListener('submit', async (e) => {
@@ -545,23 +660,18 @@ document.getElementById('cms-form')?.addEventListener('submit', async (e) => {
 });
 
 
-// --- LIVE GRAPHICS STUDIO (Drag & Drop Canvas with Mathematical Resizing Engine) ---
+// --- LIVE GRAPHICS STUDIO (Drag & Drop Canvas) ---
 let currentGfxModeStudio = 'poster';
 let gfxState = { width: 600, height: 800, elements: [], bg_url: null };
 let selectedElementId = null;
 let bgImageObj = null;
-
-const canvasStudio = document.getElementById('studio-canvas');
-const ctxStudio = canvasStudio ? canvasStudio.getContext('2d') : null;
 let isDragging = false;
 let dragOffsetX = 0; let dragOffsetY = 0;
-let currentRenderScale = 1; // Tracks CSS scale multiplier
+let currentRenderScale = 1; 
 
 function initGraphicsStudio() {
-    // Wait for fonts to load before initial render
-    document.fonts.ready.then(() => {
-        switchGfxMode('poster');
-    });
+    attachCanvasEvents();
+    switchGfxMode('poster');
 }
 
 function switchGfxMode(mode) {
@@ -574,11 +684,16 @@ function switchGfxMode(mode) {
     if(btnReceipt) btnReceipt.className = mode === 'receipt' ? 'flex-1 py-2.5 rounded-lg bg-white shadow-sm text-emerald-700 transition-all border border-slate-200/50 font-bold' : 'flex-1 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all font-medium';
     
     const rawConf = mode === 'poster' ? siteContent.poster_config : siteContent.receipt_config;
-    if(rawConf && !Array.isArray(rawConf.elements)) {
-        gfxState = { width: 600, height: 800, elements: [], bg_url: mode === 'poster' ? siteContent.poster_bg_url : siteContent.receipt_bg_url };
+    
+    // Safely deeply copy config to avoid modifying siteContent directly
+    if(rawConf && Array.isArray(rawConf.elements)) {
+        gfxState = JSON.parse(JSON.stringify(rawConf));
     } else {
-        gfxState = rawConf || { width: 600, height: 800, elements: [] };
+        gfxState = { width: 600, height: 800, elements: [] };
     }
+    
+    // Explicitly grab the bg_url from the top-level DB column so it doesn't get lost
+    gfxState.bg_url = mode === 'poster' ? siteContent.poster_bg_url : siteContent.receipt_bg_url;
     
     document.getElementById('gfx_w').value = gfxState.width || 600;
     document.getElementById('gfx_h').value = gfxState.height || 800;
@@ -590,13 +705,32 @@ function switchGfxMode(mode) {
 document.getElementById('mode-poster')?.addEventListener('click', () => switchGfxMode('poster'));
 document.getElementById('mode-receipt')?.addEventListener('click', () => switchGfxMode('receipt'));
 
+// Live Local Upload Preview Fix
+document.getElementById('gfx_bg_file')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            gfxState.bg_url = event.target.result; 
+            loadStudioBgImage(); 
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
 function loadStudioBgImage() {
-    if(!gfxState.bg_url) { bgImageObj = null; renderStudioCanvas(); return; }
+    if(!gfxState.bg_url) { 
+        bgImageObj = null; 
+        renderStudioCanvas(); 
+        return; 
+    }
     bgImageObj = new Image(); 
-    bgImageObj.crossOrigin = "Anonymous"; 
+    if (!gfxState.bg_url.startsWith('data:')) {
+        bgImageObj.crossOrigin = "Anonymous"; 
+    }
+    bgImageObj.onload = () => { renderStudioCanvas(); };
+    bgImageObj.onerror = () => { bgImageObj = null; renderStudioCanvas(); };
     bgImageObj.src = gfxState.bg_url;
-    bgImageObj.onload = renderStudioCanvas;
-    bgImageObj.onerror = renderStudioCanvas; // Still render if broken
 }
 
 ['gfx_w', 'gfx_h'].forEach(id => {
@@ -624,11 +758,15 @@ document.getElementById('btn-add-element')?.addEventListener('click', () => {
     renderStudioCanvas();
 });
 
-if(canvasStudio) {
+
+function attachCanvasEvents() {
+    const canvasStudio = document.getElementById('studio-canvas');
+    if(!canvasStudio) return;
+
     canvasStudio.addEventListener('mousedown', (e) => {
+        const ctxStudio = canvasStudio.getContext('2d');
         const rect = canvasStudio.getBoundingClientRect();
         
-        // Use the mathematically calculated scale 
         const scaleX = canvasStudio.width / rect.width;
         const scaleY = canvasStudio.height / rect.height;
         
@@ -637,14 +775,13 @@ if(canvasStudio) {
 
         for (let i = gfxState.elements.length - 1; i >= 0; i--) {
             let el = gfxState.elements[i];
-            ctxStudio.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size}px ${el.font}`;
-            let m = ctxStudio.measureText(el.text);
-            let w = m.width; let h = el.size;
+            ctxStudio.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size || 30}px "${el.font || 'Inter'}"`;
+            let m = ctxStudio.measureText(el.text || '');
+            let w = m.width; let h = el.size || 30;
             let x = el.x;
             if (el.align === 'center') x -= w/2;
             if (el.align === 'right') x -= w;
 
-            // Hitbox
             if (mx >= x-10 && mx <= x+w+10 && my >= el.y-h-5 && my <= el.y+10) {
                 selectedElementId = el.id;
                 isDragging = true;
@@ -676,13 +813,12 @@ if(canvasStudio) {
     canvasStudio.addEventListener('mouseleave', () => isDragging = false);
 }
 
-// ----------------------------------------------------
-// THE MATHEMATICAL RESIZING ENGINE FOR THE PREVIEW
-// ----------------------------------------------------
+
 function renderStudioCanvas() {
-    if(!canvasStudio || !ctxStudio) return;
+    const canvasStudio = document.getElementById('studio-canvas');
+    if(!canvasStudio) return;
+    const ctxStudio = canvasStudio.getContext('2d');
     
-    // Set actual resolution
     canvasStudio.width = gfxState.width || 600;
     canvasStudio.height = gfxState.height || 800;
 
@@ -691,18 +827,15 @@ function renderStudioCanvas() {
     const scaleIndicator = document.getElementById('preview-scale-indicator');
 
     if(workspace && wrapper) {
-        // Calculate maximum available space with padding
-        const maxWidth = workspace.clientWidth - 60;
-        const maxHeight = workspace.clientHeight - 80;
+        const maxWidth = Math.max(workspace.clientWidth - 60, 200);
+        const maxHeight = Math.max(workspace.clientHeight - 80, 200);
         
-        // Calculate scaling ratio
-        const scaleX = maxWidth / canvasStudio.width;
-        const scaleY = maxHeight / canvasStudio.height;
-        currentRenderScale = Math.min(scaleX, scaleY, 1); // Cap scale at 100%
+        const scaleX = maxWidth / (canvasStudio.width || 1);
+        const scaleY = maxHeight / (canvasStudio.height || 1);
+        currentRenderScale = Math.min(scaleX, scaleY, 1); 
 
-        // Apply explicitly calculated sizes to prevent flexbox collapsing
-        const finalWidth = canvasStudio.width * currentRenderScale;
-        const finalHeight = canvasStudio.height * currentRenderScale;
+        const finalWidth = Math.max(canvasStudio.width * currentRenderScale, 100);
+        const finalHeight = Math.max(canvasStudio.height * currentRenderScale, 100);
 
         wrapper.style.width = `${finalWidth}px`;
         wrapper.style.height = `${finalHeight}px`;
@@ -712,31 +845,34 @@ function renderStudioCanvas() {
         }
     }
 
+    // ALWAYS draw solid white background to prevent blanking out
     ctxStudio.fillStyle = '#ffffff'; 
     ctxStudio.fillRect(0,0, canvasStudio.width, canvasStudio.height);
     
-    if(bgImageObj) {
+    if(bgImageObj && bgImageObj.complete && bgImageObj.naturalWidth !== 0) {
         ctxStudio.drawImage(bgImageObj, 0, 0, canvasStudio.width, canvasStudio.height);
     }
 
-    gfxState.elements.forEach(el => {
-        ctxStudio.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size}px ${el.font}`;
-        ctxStudio.fillStyle = el.color; 
-        ctxStudio.textAlign = el.align;
-        ctxStudio.fillText(el.text, el.x, el.y);
+    if(gfxState.elements) {
+        gfxState.elements.forEach(el => {
+            ctxStudio.font = `${el.italic?'italic ':''}${el.bold?'bold ':''}${el.size || 30}px "${el.font || 'Inter'}"`;
+            ctxStudio.fillStyle = el.color || '#000000'; 
+            ctxStudio.textAlign = el.align || 'center';
+            ctxStudio.fillText(el.text || '', el.x, el.y);
 
-        if (el.id === selectedElementId) {
-            let m = ctxStudio.measureText(el.text);
-            let w = m.width; let h = el.size;
-            let x = el.x;
-            if (el.align === 'center') x -= w/2;
-            if (el.align === 'right') x -= w;
-            
-            ctxStudio.strokeStyle = '#3b82f6'; ctxStudio.lineWidth = 2; ctxStudio.setLineDash([6, 6]);
-            ctxStudio.strokeRect(x - 6, el.y - h + 2, w + 12, h + 10);
-            ctxStudio.setLineDash([]);
-        }
-    });
+            if (el.id === selectedElementId) {
+                let m = ctxStudio.measureText(el.text || '');
+                let w = m.width; let h = el.size || 30;
+                let x = el.x;
+                if (el.align === 'center') x -= w/2;
+                if (el.align === 'right') x -= w;
+                
+                ctxStudio.strokeStyle = '#3b82f6'; ctxStudio.lineWidth = 2; ctxStudio.setLineDash([6, 6]);
+                ctxStudio.strokeRect(x - 6, el.y - h + 2, w + 12, h + 10);
+                ctxStudio.setLineDash([]);
+            }
+        });
+    }
 }
 
 function updatePropsPanel() {
@@ -795,8 +931,9 @@ document.getElementById('btn-save-graphics')?.addEventListener('click', async ()
     btn.disabled = true;
     if (typeof lucide !== 'undefined') lucide.createIcons();
     
+    // Only upload to Supabase if it's a new local file (data URL)
     const file = document.getElementById('gfx_bg_file')?.files[0];
-    if (file) {
+    if (file && gfxState.bg_url && gfxState.bg_url.startsWith('data:')) {
         const { data, error } = await supabase.storage.from('campaign-assets').upload(`${currentGfxModeStudio}_bg_${Date.now()}.png`, file);
         if(!error) gfxState.bg_url = supabase.storage.from('campaign-assets').getPublicUrl(data.path).data.publicUrl;
     }
