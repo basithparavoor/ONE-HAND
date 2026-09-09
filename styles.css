@@ -2,53 +2,56 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f8fafc;
+  /* Soft greenish off-white background matching the poster */
+  background-color: #eef3ed;
+  color: #144533; 
 }
 
-/* Advanced Glassmorphism */
+/* Advanced Glassmorphism - Updated to Warm Cream */
 .glass-card {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(253, 251, 245, 0.85); /* Creamy card bg */
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  /* Subtle gold border */
+  border: 1px solid rgba(207, 168, 98, 0.3);
+  box-shadow: 0 20px 40px -15px rgba(20, 69, 51, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
-/* Premium Inputs & Textareas */
+/* Premium Inputs & Textareas - Updated to Gold Focus */
 .premium-input {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #c2d6ce;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02) inset;
+  box-shadow: 0 2px 4px rgba(20, 69, 51, 0.02) inset;
+  color: #144533;
 }
 .premium-input:focus {
   background: #ffffff;
-  border-color: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15), 0 2px 4px rgba(0,0,0,0.02) inset;
+  border-color: #cfa862; /* Poster Gold Focus */
+  box-shadow: 0 0 0 4px rgba(207, 168, 98, 0.15), 0 2px 4px rgba(20, 69, 51, 0.02) inset;
   outline: none;
   transform: translateY(-1px);
 }
 
 /* Custom Select Dropdowns */
 select.premium-input {
-  appearance: none; /* Removes default OS styling */
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   cursor: pointer;
 }
-/* Focus rings inside custom select wrappers */
 .select-wrapper:focus-within {
   transform: translateY(-1px);
 }
 
-/* Animated Striped Progress Bar */
+/* Animated Striped Progress Bar - Updated to Gold/Green */
 .progress-bar-fill {
   transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
   background-image: linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.2) 25%, transparent 25%,
-    transparent 50%, rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent
+    rgba(255, 255, 255, 0.15) 25%, transparent 25%,
+    transparent 50%, rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent
   );
   background-size: 1rem 1rem;
   animation: progress-stripes 1s linear infinite;
@@ -81,5 +84,38 @@ select.premium-input {
   padding: 16px 24px !important;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1) !important;
 }
-
 .hidden { display: none !important; }
+
+
+/* =========================================
+   POSTER THEME OVERRIDES 
+   Converts Tailwind Emerald/Teal to Poster Colors
+========================================= */
+
+/* Button Backgrounds & Solid Fills -> Deep Poster Green (#144533) */
+.bg-emerald-500, .bg-slate-900 { background-color: #144533 !important; }
+.hover\:bg-emerald-600:hover, .hover\:bg-slate-800:hover { background-color: #0e3023 !important; }
+
+/* Light Background Tints -> Creamy Green */
+.bg-emerald-50 { background-color: #f2f6f4 !important; }
+.bg-emerald-100 { background-color: #e1ebe7 !important; }
+
+/* Text Colors -> Poster Green & Accent */
+.text-emerald-400 { color: #236c51 !important; }
+.text-emerald-500 { color: #1e6047 !important; }
+.text-emerald-600 { color: #144533 !important; }
+.text-emerald-700 { color: #0e3023 !important; }
+.text-slate-900 { color: #144533 !important; } /* Replaces dark slate text with Deep Green */
+
+/* Border Colors -> Match Poster Palette */
+.border-emerald-100 { border-color: #e1ebe7 !important; }
+.border-emerald-200 { border-color: #c2d6ce !important; }
+.border-emerald-300 { border-color: #cfa862 !important; } /* Swapped to Gold for active borders */
+.border-emerald-500 { border-color: #144533 !important; }
+
+/* Gradient Mapping (Primary Buttons & Progress Bar) */
+/* From Green -> To Darker Green */
+.from-emerald-400 { --tw-gradient-from: #1e6047 !important; --tw-gradient-to: rgba(30, 96, 71, 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+.from-emerald-500 { --tw-gradient-from: #144533 !important; --tw-gradient-to: rgba(20, 69, 51, 0) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+.to-teal-500 { --tw-gradient-to: #0e3023 !important; }
+.hover\:to-teal-600:hover { --tw-gradient-to: #000000 !important; }
