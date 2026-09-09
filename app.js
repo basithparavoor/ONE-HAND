@@ -93,6 +93,13 @@ async function loadCampaignStats() {
     if (error || !data) return console.error('Failed to load stats:', error);
     campaignData = data;
 
+    // FIX: Pull directly from site_content to get the newly added donor_share_template 
+    // (since it's not exposed in the old public_campaign_stats SQL view yet)
+    const { data: siteData } = await supabase.from('site_content').select('donor_share_template').single();
+    if (siteData && siteData.donor_share_template) {
+        campaignData.donor_share_template = siteData.donor_share_template;
+    }
+
     // Load Admin Custom Fonts for Public View
     if (campaignData.custom_fonts && campaignData.custom_fonts.length > 0) {
         let css = campaignData.custom_fonts.map(f => `@font-face { font-family: '${f.name}'; src: url('${f.url}'); }`).join('\n');
@@ -427,10 +434,12 @@ document.getElementById('btn-paid')?.addEventListener('click', async () => {
         
         // --- NEW CMS WHATSAPP SHARE MESSAGE PARSER ---
         let shareTemplate = campaignData.donor_share_template || "I just sponsored a student via SSF Trust with ₹{amount}! Join the mission: {url}";
+        const cleanUrl = window.location.origin + window.location.pathname; // Strips out ugly query strings
+        
         const shareMsg = shareTemplate
                             .replaceAll('{name}', currentDonationState.name)
                             .replaceAll('{amount}', currentDonationState.amount)
-                            .replaceAll('{url}', window.location.href);
+                            .replaceAll('{url}', cleanUrl);
         
         const waBtn = document.getElementById('wa-share-btn');
         if (waBtn) waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMsg)}`;
