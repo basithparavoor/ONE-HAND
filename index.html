@@ -262,8 +262,20 @@
             <h2 class="text-2xl font-bold text-slate-900 mb-2">Scan & Pay</h2>
             <p class="text-emerald-600 font-black text-5xl mb-6 tracking-tight" id="pay-amount-display">₹0</p>
             
-            <div class="p-3 bg-slate-50 rounded-2xl inline-block border border-slate-100 mb-6 shadow-sm">
+            <!-- QR Code -->
+            <div class="p-3 bg-slate-50 rounded-2xl inline-block border border-slate-100 mb-4 shadow-sm">
                 <img id="dynamic-qr" src="" class="w-48 h-48 rounded-xl object-contain" alt="UPI QR">
+            </div>
+            
+            <!-- ADD THIS: Copy UPI ID Fallback -->
+            <div class="flex items-center justify-between bg-slate-100 p-3 rounded-xl mb-6 border border-slate-200">
+                <div class="text-left overflow-hidden">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Official UPI ID</p>
+                    <p id="display-upi-id" class="text-sm font-bold text-slate-700 truncate"></p>
+                </div>
+                <button id="btn-copy-upi" class="shrink-0 bg-white border border-slate-200 hover:border-emerald-500 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                </button>
             </div>
             
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Or tap to pay using</p>
