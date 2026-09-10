@@ -165,10 +165,9 @@ function setupAdminLocations() {
         }
     });
 }
-['f_search', 'f_status', 'f_msg', 'f_date_from', 'f_date_to'].forEach(id => {
+['f_search', 'f_status', 'f_msg', 'f_date_from', 'f_date_to', 'filter-upi'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', renderTable);
 });
-
 // --- CORE DATA FETCHING & REALTIME ---
 async function loadData() {
     const [donationsRes, cmsRes] = await Promise.all([
@@ -178,6 +177,16 @@ async function loadData() {
     currentDonations = donationsRes.data || [];
     siteContent = cmsRes.data || {};
     
+    // --> NEW: POPULATE UPI FILTER DROPDOWN <--
+    const upiFilter = document.getElementById('filter-upi');
+    if (upiFilter && currentDonations) {
+        const uniqueUpis = [...new Set(currentDonations.map(d => d.upi_id).filter(Boolean))];
+        const currentVal = upiFilter.value;
+        upiFilter.innerHTML = '<option value="all">All UPI IDs</option>' + 
+            uniqueUpis.map(u => `<option value="${u}">${u}</option>`).join('');
+        if (uniqueUpis.includes(currentVal)) upiFilter.value = currentVal;
+    }
+
     injectCustomFonts();
     updateAnalytics();
     renderTable();
@@ -188,12 +197,9 @@ async function loadData() {
     supabase.channel('admin_donations_channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'donations' }, (payload) => {
             if (payload.eventType === 'INSERT') {
-                // Flag it as new so the table can animate it
                 payload.new.is_new = true; 
                 currentDonations.unshift(payload.new);
                 Toastify({ text: "New Donation Received!", style: { background: "#10b981" } }).showToast();
-                
-                // Remove the highlight flag after 3 seconds
                 setTimeout(() => { delete payload.new.is_new; renderTable(); }, 3000);
             } else if (payload.eventType === 'UPDATE') {
                 const idx = currentDonations.findIndex(d => d.id === payload.new.id);
@@ -202,6 +208,15 @@ async function loadData() {
                 currentDonations = currentDonations.filter(d => d.id !== payload.old.id);
             }
             updateAnalytics();
+            
+            // Re-populate UPI dropdown if a new UPI ID comes in live
+            if (upiFilter) {
+                const uniqueUpis = [...new Set(currentDonations.map(d => d.upi_id).filter(Boolean))];
+                const currentVal = upiFilter.value;
+                upiFilter.innerHTML = '<option value="all">All UPI IDs</option>' + uniqueUpis.map(u => `<option value="${u}">${u}</option>`).join('');
+                if (uniqueUpis.includes(currentVal)) upiFilter.value = currentVal;
+            }
+            
             renderTable();
         })
         .subscribe();
@@ -243,6 +258,8 @@ function renderTable() {
     const msgFilter = document.getElementById('f_msg')?.value || 'all';
     const dFrom = document.getElementById('f_date_from')?.value;
     const dTo = document.getElementById('f_date_to')?.value;
+    
+    const upiFilter = document.getElementById('filter-upi')?.value || 'all';
 
     const filtered = currentDonations.filter(d => {
         if (search && !d.donor_name.toLowerCase().includes(search) && !(d.phone_number||'').includes(search) && !(d.transaction_ref||'').toLowerCase().includes(search)) return false;
@@ -252,6 +269,8 @@ function renderTable() {
         if (status === 'pending' && d.is_verified) return false;
         if (msgFilter === 'sent' && !d.msg_sent) return false;
         if (msgFilter === 'unsent' && d.msg_sent) return false;
+        
+        if (upiFilter !== 'all' && d.upi_id !== upiFilter) return false;
         
         const dDate = new Date(d.created_at);
         if (dFrom && dDate < new Date(dFrom)) return false;
@@ -283,6 +302,13 @@ function renderTable() {
                     ${d.is_offline ? 'OFFLINE' : 'UTR: ' + (utrString || 'Not Set')}
                 </p>
             </td>
+            
+            <td class="p-4 align-top">
+                <p class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded border border-slate-200 inline-block truncate max-w-[120px]">
+                    ${d.upi_id || 'Unknown'}
+                </p>
+            </td>
+
             <td class="p-4 text-center align-top space-y-2">
                 ${d.is_verified ? `
                     <button onclick="processWhatsAppReceipt('${d.id}')" class="w-full justify-center px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all shadow-sm flex items-center gap-1.5 mx-auto ${d.msg_sent ? 'bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/30 hover:bg-[#25D366]/20' : 'bg-slate-900 text-white hover:bg-slate-800'}">
