@@ -95,9 +95,11 @@ async function loadCampaignStats() {
 
     // FIX: Pull directly from site_content to get the newly added donor_share_template 
     // (since it's not exposed in the old public_campaign_stats SQL view yet)
-    const { data: siteData } = await supabase.from('site_content').select('donor_share_template').single();
-    if (siteData && siteData.donor_share_template) {
-        campaignData.donor_share_template = siteData.donor_share_template;
+
+    const { data: siteData } = await supabase.from('site_content').select('donor_share_template, campaign_share_template').single();
+    if (siteData) {
+        if(siteData.donor_share_template) campaignData.donor_share_template = siteData.donor_share_template;
+        if(siteData.campaign_share_template) campaignData.campaign_share_template = siteData.campaign_share_template;
     }
 
     // Load Admin Custom Fonts for Public View
@@ -610,16 +612,12 @@ document.getElementById('btn-native-share')?.addEventListener('click', async () 
     btn.disabled = true;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    // Grab text from CMS or use default
     const shareTitle = campaignData?.campaign_title || 'SSF Trust Campaign';
-    let shareText = "Support this amazing cause! Check out the campaign here: " + window.location.origin;
+    const cleanUrl = window.location.origin + window.location.pathname; 
     
-    if (campaignData?.donor_share_template) {
-        shareText = campaignData.donor_share_template
-            .replaceAll('{name}', 'my friends')
-            .replaceAll('{amount}', 'a donation')
-            .replaceAll('{url}', window.location.href);
-    }
+    // --> USE THE NEW ADMIN TEMPLATE HERE
+    let shareText = campaignData?.campaign_share_template || "Support this amazing cause! Check out the campaign here: {url}";
+    shareText = shareText.replaceAll('{url}', cleanUrl);
 
     const imageUrl = 'poster.jpg';
 
@@ -629,7 +627,7 @@ document.getElementById('btn-native-share')?.addEventListener('click', async () 
         const blob = await response.blob();
         const file = new File([blob], 'SSF_Campaign_Poster.jpg', { type: blob.type });
 
-        // If the OS supports native file sharing (Android/iOS Safari)
+        // Native OS sharing
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
                 title: shareTitle,
@@ -637,15 +635,13 @@ document.getElementById('btn-native-share')?.addEventListener('click', async () 
                 files: [file]
             });
         } 
-        // Fallback: If OS only supports Text/URL sharing (Some older devices)
         else if (navigator.share) {
             await navigator.share({
                 title: shareTitle,
                 text: shareText,
-                url: window.location.href
+                url: cleanUrl
             });
         } 
-        // Ultimate Fallback: PC Desktop users go straight to WhatsApp Web
         else {
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
         }
