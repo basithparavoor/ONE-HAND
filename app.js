@@ -468,7 +468,6 @@ async function loadMyTransactions() {
     
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
-
 // --- FORM SUBMIT (Show Payment Modal) ---
 document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -491,12 +490,44 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
 
     const upiId = campaignData.upi_id;
     const payeeName = campaignData.campaign_title.replace(/\s/g, '%20');
-    const upiLink = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
+    
+    // NEW: Generate a unique ID for every single click to bypass UPI spam filters
+    const uniqueRef = "SSF" + Date.now();
+    
+    // Inject the unique '&tr=' parameter into the links
+    const upiLink = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tr=${uniqueRef}`;
     
     document.getElementById('pay-amount-display').textContent = formatMoney(finalAmount);
     document.getElementById('dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiLink)}`;
-    document.getElementById('btn-gpay').href = `gpay://upi/pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
-    document.getElementById('btn-phonepe').href = `phonepe://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
+    document.getElementById('btn-gpay').href = `gpay://upi/pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tr=${uniqueRef}`;
+    document.getElementById('btn-phonepe').href = `phonepe://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tr=${uniqueRef}`;
+
+    // NEW: Display and Copy UPI ID Logic
+    const displayUpi = document.getElementById('display-upi-id');
+    if (displayUpi) displayUpi.textContent = upiId;
+    
+    const copyBtn = document.getElementById('btn-copy-upi');
+    if (copyBtn) {
+        // Remove old listeners to prevent multiple firing
+        const newCopyBtn = copyBtn.cloneNode(true);
+        copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
+        
+        newCopyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigator.clipboard.writeText(upiId).then(() => {
+                const originalHtml = newCopyBtn.innerHTML;
+                newCopyBtn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Copied!';
+                newCopyBtn.classList.replace('text-emerald-600', 'text-slate-900');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                
+                setTimeout(() => {
+                    newCopyBtn.innerHTML = originalHtml;
+                    newCopyBtn.classList.replace('text-slate-900', 'text-emerald-600');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }, 2000);
+            });
+        });
+    }
 
     document.getElementById('payment-modal')?.classList.remove('hidden');
 });
