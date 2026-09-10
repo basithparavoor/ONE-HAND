@@ -392,32 +392,29 @@ tabTop?.addEventListener('click', () => {
     loadDonors('top');
 });
 
+// --- TAB NAVIGATION ---
 window.switchTab = (tab) => {
     // 1. Toggle View Visibility
     document.getElementById('view-campaign')?.classList.toggle('hidden', tab !== 'campaign');
     document.getElementById('view-mytxns')?.classList.toggle('hidden', tab !== 'my-txns');
+    document.getElementById('view-dpmaker')?.classList.toggle('hidden', tab !== 'dp-maker');
     
     // 2. Safely grab the button elements
     const navCamp = document.getElementById('nav-campaign');
     const navTxn = document.getElementById('nav-mytxns');
+    const navDP = document.getElementById('nav-dpmaker');
     
     // 3. Apply precise active/inactive styling
-    if (navCamp) {
-        navCamp.className = tab === 'campaign' 
-            ? 'text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1.5 transition-colors whitespace-nowrap'
-            : 'text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1.5 transition-colors whitespace-nowrap';
-    }
+    const activeClass = 'text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1.5 transition-colors whitespace-nowrap';
+    const inactiveClass = 'text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1.5 transition-colors whitespace-nowrap';
     
-    if (navTxn) {
-        navTxn.className = tab === 'my-txns' 
-            ? 'text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1.5 transition-colors whitespace-nowrap'
-            : 'text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1.5 transition-colors whitespace-nowrap';
-    }
+    if (navCamp) navCamp.className = tab === 'campaign' ? activeClass : inactiveClass;
+    if (navTxn) navTxn.className = tab === 'my-txns' ? activeClass : inactiveClass;
+    if (navDP) navDP.className = tab === 'dp-maker' ? activeClass : inactiveClass;
 
-    // 4. Load data if switching to transactions
-    if (tab === 'my-txns') {
-        loadMyTransactions();
-    }
+    // 4. Trigger logic based on active tab
+    if (tab === 'my-txns') loadMyTransactions();
+    if (tab === 'dp-maker') initDPMaker();
 };
 
 // --- AUTO-LOAD MY TRANSACTIONS USING LOCAL STORAGE ---
@@ -772,6 +769,140 @@ document.getElementById('btn-native-share')?.addEventListener('click', async () 
         btn.disabled = false;
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
+});
+
+// ==========================================
+// --- PROFILE PHOTO (DP) MAKER ENGINE ---
+// ==========================================
+let dpCanvas, dpCtx;
+let frameImg = new Image();
+let userImg = null;
+let frameLoaded = false;
+
+// Interaction states
+let dpScale = 1;
+let dpOffsetX = 0;
+let dpOffsetY = 0;
+let isDraggingDP = false;
+let startX = 0;
+let startY = 0;
+
+function initDPMaker() {
+    if (frameLoaded) return;
+    dpCanvas = document.getElementById('dp-canvas');
+    if (!dpCanvas) return;
+    dpCtx = dpCanvas.getContext('2d');
+    
+    // Load the transparent frame overlay (MUST be in the main folder!)
+    frameImg.src = 'dp.png'; 
+    frameImg.onload = () => {
+        frameLoaded = true;
+        // Lock canvas size to the native resolution of the dp.png frame
+        dpCanvas.width = frameImg.width || 1080;
+        dpCanvas.height = frameImg.height || 1080;
+        drawDP();
+    };
+    frameImg.onerror = () => console.error("Could not load dp.png.");
+}
+
+// 1. Handle Photo Upload
+document.getElementById('dp-upload')?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        userImg = new Image();
+        userImg.onload = () => {
+            // Unhide workspace
+            document.getElementById('dp-placeholder-text').classList.add('hidden');
+            dpCanvas.classList.remove('hidden');
+            document.getElementById('dp-controls').classList.remove('hidden');
+            
+            // Auto-scale to fill the canvas bounds nicely
+            const scaleX = dpCanvas.width / userImg.width;
+            const scaleY = dpCanvas.height / userImg.height;
+            dpScale = Math.max(scaleX, scaleY); 
+            
+            // Set slider limits dynamically based on image size
+            const zoomSlider = document.getElementById('dp-zoom');
+            zoomSlider.value = dpScale;
+            zoomSlider.min = dpScale * 0.2;
+            zoomSlider.max = dpScale * 4;
+            
+            // Center the image initially
+            dpOffsetX = (dpCanvas.width - (userImg.width * dpScale)) / 2;
+            dpOffsetY = (dpCanvas.height - (userImg.height * dpScale)) / 2;
+            
+            drawDP();
+        };
+        userImg.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// 2. Draw Composer
+function drawDP() {
+    if (!dpCtx || !frameLoaded) return;
+    dpCtx.clearRect(0, 0, dpCanvas.width, dpCanvas.height);
+    
+    // Step A: Draw User Photo (Underneath)
+    if (userImg) {
+        dpCtx.drawImage(userImg, dpOffsetX, dpOffsetY, userImg.width * dpScale, userImg.height * dpScale);
+    }
+    
+    // Step B: Draw Frame Overlay (On Top - Transparent window will reveal the photo)
+    dpCtx.drawImage(frameImg, 0, 0, dpCanvas.width, dpCanvas.height);
+}
+
+// 3. Zoom Controls (Zoom towards center)
+document.getElementById('dp-zoom')?.addEventListener('input', (e) => {
+    if (!userImg) return;
+    const centerCanvasX = dpCanvas.width / 2;
+    const centerCanvasY = dpCanvas.height / 2;
+    const newScale = parseFloat(e.target.value);
+    
+    dpOffsetX = centerCanvasX - (centerCanvasX - dpOffsetX) * (newScale / dpScale);
+    dpOffsetY = centerCanvasY - (centerCanvasY - dpOffsetY) * (newScale / dpScale);
+    
+    dpScale = newScale;
+    drawDP();
+});
+
+// 4. Drag & Pan Controls (Mouse & Touch)
+const getPointerPos = (e) => (e.touches ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY });
+
+const startDrag = (e) => { if (userImg) { isDraggingDP = true; const pos = getPointerPos(e); startX = pos.x; startY = pos.y; }};
+const drag = (e) => {
+    if (!isDraggingDP) return;
+    e.preventDefault(); // Prevents page from scrolling while panning
+    const pos = getPointerPos(e);
+    
+    // Scale the mouse movement based on CSS view vs Actual Canvas Pixels
+    const rect = dpCanvas.getBoundingClientRect();
+    dpOffsetX += (pos.x - startX) * (dpCanvas.width / rect.width);
+    dpOffsetY += (pos.y - startY) * (dpCanvas.height / rect.height);
+    
+    startX = pos.x; startY = pos.y;
+    drawDP();
+};
+const endDrag = () => { isDraggingDP = false; };
+
+dpCanvas?.addEventListener('mousedown', startDrag);
+dpCanvas?.addEventListener('touchstart', startDrag, {passive: false});
+document.addEventListener('mousemove', drag);
+document.addEventListener('touchmove', drag, {passive: false});
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+
+// 5. Download Final Image
+document.getElementById('btn-download-dp')?.addEventListener('click', () => {
+    if (!userImg) return;
+    const link = document.createElement('a');
+    link.download = 'SSF_Campaign_DP.png';
+    link.href = dpCanvas.toDataURL('image/png', 1.0);
+    link.click();
+    if (typeof confetti !== 'undefined') confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
 });
 
 // Initial calls
