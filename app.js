@@ -486,7 +486,7 @@ document.getElementById('btn-paid')?.addEventListener('click', async () => {
                 const canvas = document.getElementById('poster-canvas');
                 
                 // Parse the CMS Share text
-                let shareTemplate = campaignData.donor_share_template || "I just sponsored a student via SSF Trust with ₹{amount}! Join the mission: {url}";
+                let shareTemplate = campaignData.donor_share_template || "I just sponsored a student via One Hand Campaign with ₹{amount}! Join the mission: {url}";
                 const cleanUrl = window.location.origin + window.location.pathname; 
                 const shareMsg = shareTemplate
                                     .replaceAll('{name}', currentDonationState.name)
@@ -502,13 +502,13 @@ document.getElementById('btn-paid')?.addEventListener('click', async () => {
                             // Check if OS allows sharing files (Images)
                             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                                 await navigator.share({
-                                    title: 'SSF Trust Donation',
+                                    title: 'One Hand Donation',
                                     text: shareMsg,
                                     files: [file]
                                 });
                             } else {
                                 // Fallback: Share Text/Link only via Native OS
-                                await navigator.share({ title: 'SSF Trust Donation', text: shareMsg });
+                                await navigator.share({ title: 'One Hand Donation', text: shareMsg });
                             }
                         }, 'image/jpeg', 0.9);
                         return;
@@ -600,6 +600,63 @@ window.reprintPoster = (name, amt, state, dist, place) => {
     // Pass the fully populated dynamic fields
     generatePoster(name, amt, state, dist, place);
 };
+
+// --- GENERAL CAMPAIGN SHARE (NATIVE WEB SHARE) ---
+document.getElementById('btn-native-share')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-native-share');
+    const originalContent = btn.innerHTML;
+    
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Loading...';
+    btn.disabled = true;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    // Grab text from CMS or use default
+    const shareTitle = campaignData?.campaign_title || 'SSF Trust Campaign';
+    let shareText = "Support this amazing cause! Check out the campaign here: " + window.location.origin;
+    
+    if (campaignData?.donor_share_template) {
+        shareText = campaignData.donor_share_template
+            .replaceAll('{name}', 'my friends')
+            .replaceAll('{amount}', 'a donation')
+            .replaceAll('{url}', window.location.href);
+    }
+
+    const imageUrl = 'poster.jpg';
+
+    try {
+        // Fetch the local poster.jpg as a file object
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], 'SSF_Campaign_Poster.jpg', { type: blob.type });
+
+        // If the OS supports native file sharing (Android/iOS Safari)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                title: shareTitle,
+                text: shareText,
+                files: [file]
+            });
+        } 
+        // Fallback: If OS only supports Text/URL sharing (Some older devices)
+        else if (navigator.share) {
+            await navigator.share({
+                title: shareTitle,
+                text: shareText,
+                url: window.location.href
+            });
+        } 
+        // Ultimate Fallback: PC Desktop users go straight to WhatsApp Web
+        else {
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+        }
+    } catch (err) {
+        console.log("Share cancelled or failed:", err);
+    } finally {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+});
 
 // Initial calls
 populateLocations();
