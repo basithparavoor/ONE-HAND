@@ -393,14 +393,28 @@ tabTop?.addEventListener('click', () => {
 });
 
 window.switchTab = (tab) => {
+    // 1. Toggle View Visibility
     document.getElementById('view-campaign')?.classList.toggle('hidden', tab !== 'campaign');
     document.getElementById('view-mytxns')?.classList.toggle('hidden', tab !== 'my-txns');
     
-    document.getElementById('nav-campaign')?.classList.toggle('border-b-2', tab === 'campaign');
-    document.getElementById('nav-campaign')?.classList.toggle('text-emerald-700', tab === 'campaign');
-    document.getElementById('nav-mytxns')?.classList.toggle('border-b-2', tab === 'my-txns');
-    document.getElementById('nav-mytxns')?.classList.toggle('text-emerald-700', tab === 'my-txns');
+    // 2. Safely grab the button elements
+    const navCamp = document.getElementById('nav-campaign');
+    const navTxn = document.getElementById('nav-mytxns');
+    
+    // 3. Apply precise active/inactive styling
+    if (navCamp) {
+        navCamp.className = tab === 'campaign' 
+            ? 'text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1.5 transition-colors whitespace-nowrap'
+            : 'text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1.5 transition-colors whitespace-nowrap';
+    }
+    
+    if (navTxn) {
+        navTxn.className = tab === 'my-txns' 
+            ? 'text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1.5 transition-colors whitespace-nowrap'
+            : 'text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1.5 transition-colors whitespace-nowrap';
+    }
 
+    // 4. Load data if switching to transactions
     if (tab === 'my-txns') {
         loadMyTransactions();
     }
