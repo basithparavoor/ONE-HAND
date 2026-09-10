@@ -489,16 +489,23 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     };
 
     const upiId = campaignData.upi_id;
-    const payeeName = campaignData.campaign_title.replace(/\s/g, '%20');
     
-    // Clean, standard Merchant link without random invoice tracking
-    const upiLink = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
+    // 1. Properly URL-encode the name to prevent any hidden character crashes
+    const payeeName = encodeURIComponent(campaignData.campaign_title);
+    
+    // 2. Add a Transaction Note (crucial for bypassing bank declines on intents)
+    const txnNote = encodeURIComponent("Campaign Donation");
+    
+    // 3. Build the core query string with the added '&tn=' parameter
+    const upiQuery = `pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tn=${txnNote}`;
     
     document.getElementById('pay-amount-display').textContent = formatMoney(finalAmount);
-    document.getElementById('dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiLink)}`;
-    document.getElementById('btn-gpay').href = `gpay://upi/pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
-    document.getElementById('btn-phonepe').href = `phonepe://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
-   
+    
+    // 4. Assign the perfectly formatted strings to the QR and Buttons
+    document.getElementById('dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent('upi://pay?' + upiQuery)}`;
+    document.getElementById('btn-gpay').href = `gpay://upi/pay?${upiQuery}`;
+    document.getElementById('btn-phonepe').href = `phonepe://pay?${upiQuery}`;
+
     // NEW: Display and Copy UPI ID Logic
     const displayUpi = document.getElementById('display-upi-id');
     if (displayUpi) displayUpi.textContent = upiId;
