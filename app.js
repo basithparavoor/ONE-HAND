@@ -491,17 +491,14 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     const upiId = campaignData.upi_id;
     const payeeName = campaignData.campaign_title.replace(/\s/g, '%20');
     
-    // NEW: Generate a unique ID for every single click to bypass UPI spam filters
-    const uniqueRef = "SSF" + Date.now();
-    
-    // Inject the unique '&tr=' parameter into the links
-    const upiLink = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tr=${uniqueRef}`;
+    // Clean, standard Merchant link without random invoice tracking
+    const upiLink = `upi://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
     
     document.getElementById('pay-amount-display').textContent = formatMoney(finalAmount);
     document.getElementById('dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiLink)}`;
-    document.getElementById('btn-gpay').href = `gpay://upi/pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tr=${uniqueRef}`;
-    document.getElementById('btn-phonepe').href = `phonepe://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tr=${uniqueRef}`;
-
+    document.getElementById('btn-gpay').href = `gpay://upi/pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
+    document.getElementById('btn-phonepe').href = `phonepe://pay?pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR`;
+   
     // NEW: Display and Copy UPI ID Logic
     const displayUpi = document.getElementById('display-upi-id');
     if (displayUpi) displayUpi.textContent = upiId;
