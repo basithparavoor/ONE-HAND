@@ -257,9 +257,10 @@
         </div>
     </main>
 
-    <!-- MODAL: PAYMENT (Dynamic QR) -->
+   <!-- MODAL: PAYMENT (Dynamic QR) -->
     <div id="payment-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl p-4 hidden transition-opacity">
-        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl text-center relative border border-white/20">
+        <!-- Added max-h-[90vh] and overflow-y-auto here -->
+        <div class="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl text-center relative border border-white/20 max-h-[90vh] overflow-y-auto">
             <h2 class="text-2xl font-bold text-slate-900 mb-2">Scan & Pay</h2>
             <p class="text-emerald-600 font-black text-5xl mb-6 tracking-tight" id="pay-amount-display">₹0</p>
             
@@ -299,7 +300,8 @@
 
     <!-- MODAL: SUCCESS & POSTER -->
     <div id="success-modal" class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/95 p-4 hidden backdrop-blur-xl">
-        <div class="bg-white rounded-[2rem] p-6 w-full max-w-lg shadow-2xl text-center relative max-h-[95vh] overflow-y-auto">
+        <!-- Kept max-h-[90vh] and overflow-y-auto here -->
+        <div class="bg-white rounded-[2rem] p-6 w-full max-w-lg shadow-2xl text-center relative max-h-[90vh] overflow-y-auto">
             <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 shadow-inner">
                 <i data-lucide="check-circle" class="w-10 h-10 text-emerald-600"></i>
             </div>
