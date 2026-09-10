@@ -95,7 +95,6 @@ async function loadCampaignStats() {
 
     // FIX: Pull directly from site_content to get the newly added donor_share_template 
     // (since it's not exposed in the old public_campaign_stats SQL view yet)
-
     const { data: siteData } = await supabase.from('site_content').select('donor_share_template, campaign_share_template').single();
     if (siteData) {
         if(siteData.donor_share_template) campaignData.donor_share_template = siteData.donor_share_template;
@@ -106,7 +105,7 @@ async function loadCampaignStats() {
     if (campaignData.custom_fonts && campaignData.custom_fonts.length > 0) {
         let css = campaignData.custom_fonts.map(f => `@font-face { font-family: '${f.name}'; src: url('${f.url}'); }`).join('\n');
         document.getElementById('custom-fonts-style').innerHTML = css;
-        
+
         // Force the fonts to load into the browser's cache so the canvas can immediately use them
         campaignData.custom_fonts.forEach(f => {
             const fontFace = new FontFace(f.name, `url(${f.url})`);
@@ -115,15 +114,29 @@ async function loadCampaignStats() {
     }
 
     const titleEl = document.getElementById('campaign-title');
-    if(titleEl) titleEl.textContent = data.campaign_title;
-    const descEl = document.getElementById('campaign-desc');
-    if(descEl) descEl.textContent = data.campaign_description;
+    if(titleEl) {
+        titleEl.textContent = data.campaign_title;
+        // DYNAMIC SEO: Update Page Title and Meta Titles
+        document.title = data.campaign_title + " | ONE HAND";
+        document.querySelector('meta[name="title"]')?.setAttribute("content", data.campaign_title);
+        document.querySelector('meta[property="og:title"]')?.setAttribute("content", data.campaign_title);
+        document.querySelector('meta[property="twitter:title"]')?.setAttribute("content", data.campaign_title);
+    }
     
+    const descEl = document.getElementById('campaign-desc');
+    if(descEl) {
+        descEl.textContent = data.campaign_description;
+        // DYNAMIC SEO: Update Meta Descriptions
+        document.querySelector('meta[name="description"]')?.setAttribute("content", data.campaign_description);
+        document.querySelector('meta[property="og:description"]')?.setAttribute("content", data.campaign_description);
+        document.querySelector('meta[property="twitter:description"]')?.setAttribute("content", data.campaign_description);
+    }
+
     const headerEl = document.getElementById('site-header-text');
     if(headerEl) headerEl.textContent = data.header_text || data.campaign_title;
     const msgEl = document.getElementById('thank-you-msg');
     if(msgEl) msgEl.textContent = data.thank_you_message || 'Thank you for your generous contribution!';
-    
+
     if(data.logo_url) {
         const logo = document.getElementById('site-logo');
         if(logo) { logo.src = data.logo_url; logo.classList.remove('hidden'); }
@@ -132,6 +145,9 @@ async function loadCampaignStats() {
     const bannerContainer = document.getElementById('campaign-banner');
     if(bannerContainer && data.banner_url) {
         bannerContainer.style.backgroundImage = `url('${data.banner_url}')`;
+        // DYNAMIC SEO: Use the Admin Hero Banner as the Link Thumbnail if available
+        document.querySelector('meta[property="og:image"]')?.setAttribute("content", data.banner_url);
+        document.querySelector('meta[property="twitter:image"]')?.setAttribute("content", data.banner_url);
     } else if (bannerContainer) {
         bannerContainer.style.backgroundImage = `linear-gradient(135deg, #0f172a 0%, #064e3b 100%)`;
     }
@@ -181,8 +197,44 @@ async function loadCampaignStats() {
         });
     }
 
+    // DYNAMIC SEO: Update Canonical URL to match the exact current loaded path
+    const cleanUrl = window.location.origin + window.location.pathname;
+    document.getElementById('canonical-url')?.setAttribute("href", cleanUrl);
+
+    // DYNAMIC SEO: Generate JSON-LD Structured Data (Fundraising Schema)
+    const schemaScript = document.getElementById('seo-schema-data');
+    if (schemaScript) {
+        const schema = {
+            "@context": "https://schema.org",
+            "@type": "NGO",
+            "name": "SSF Trust West Bengal",
+            "url": cleanUrl,
+            "logo": data.logo_url || `${window.location.origin}/adminlogo.png`,
+            "description": data.campaign_description,
+            "event": {
+                "@type": "FundraisingEvent",
+                "name": data.campaign_title,
+                "url": cleanUrl,
+                "description": data.campaign_description,
+                "image": data.banner_url || `${window.location.origin}/poster.jpg`,
+                "organizer": {
+                    "@type": "NGO",
+                    "name": "SSF Trust West Bengal",
+                    "url": cleanUrl
+                }
+            }
+        };
+
+        // Add End Date to Schema if it exists in the CMS
+        if (data.end_date) {
+            schema.event.endDate = new Date(data.end_date).toISOString();
+        }
+
+        schemaScript.textContent = JSON.stringify(schema);
+    }
+
    updateDOMStats(Number(data.total_collected), 'all', 'all');
-    if(data.end_date) startTimer(data.end_date);
+   if(data.end_date) startTimer(data.end_date);
 }
 
 function updateDOMStats(collectedAmount, stateName, districtName) {
