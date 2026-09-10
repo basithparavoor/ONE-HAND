@@ -207,7 +207,7 @@ async function loadCampaignStats() {
         const schema = {
             "@context": "https://schema.org",
             "@type": "NGO",
-            "name": "SSF Trust West Bengal",
+            "name": "SSF West Bengal",
             "url": cleanUrl,
             "logo": data.logo_url || `${window.location.origin}/adminlogo.png`,
             "description": data.campaign_description,
@@ -219,7 +219,7 @@ async function loadCampaignStats() {
                 "image": data.banner_url || `${window.location.origin}/poster.jpg`,
                 "organizer": {
                     "@type": "NGO",
-                    "name": "SSF Trust West Bengal",
+                    "name": "SSF West Bengal",
                     "url": cleanUrl
                 }
             }
@@ -664,7 +664,7 @@ document.getElementById('btn-native-share')?.addEventListener('click', async () 
     btn.disabled = true;
     if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    const shareTitle = campaignData?.campaign_title || 'SSF Trust Campaign';
+    const shareTitle = campaignData?.campaign_title || 'One Hand Campaign';
     const cleanUrl = window.location.origin + window.location.pathname; 
     
     // --> USE THE NEW ADMIN TEMPLATE HERE
