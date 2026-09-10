@@ -19,24 +19,32 @@
     </div>
 
     <!-- Premium Responsive Sticky Header -->
-    <header class="sticky top-0 z-50 glass-card border-b border-white/50 shadow-sm backdrop-blur-2xl transition-all">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
-            <!-- Branding -->
-            <div class="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-start">
-                <img id="site-logo" src="" class="h-10 w-auto hidden rounded shadow-sm" alt="Logo">
-                <span id="site-header-text" class="font-extrabold text-xl tracking-tight text-slate-900">SSF Trust</span>
-            </div>
-            
-            <!-- Mobile-Optimized Navigation -->
-            <nav class="flex items-center gap-5 sm:gap-8 overflow-x-auto w-full sm:w-auto justify-start sm:justify-end pb-1 sm:pb-0 scrollbar-hide px-2 sm:px-0">
-                <button onclick="switchTab('campaign')" id="nav-campaign" class="text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1 transition-colors whitespace-nowrap">Campaign</button>
-                <button onclick="switchTab('my-txns')" id="nav-mytxns" class="text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1 transition-colors whitespace-nowrap">My Transactions</button>
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-200/50 shadow-sm backdrop-blur-2xl transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <!-- Flex container dynamically switches between mobile multi-row and desktop single-row -->
+            <div class="flex flex-wrap items-center justify-between py-3 sm:py-4 gap-y-3">
                 
-                <!-- New Share Button -->
-                <button onclick="document.getElementById('share-modal').classList.remove('hidden')" class="text-sm font-bold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-4 py-1.5 rounded-full transition-colors whitespace-nowrap flex items-center gap-1.5 ml-auto sm:ml-0 shadow-sm border border-emerald-200/50">
-                    <i data-lucide="share-2" class="w-4 h-4"></i> Share
-                </button>
-            </nav>
+                <!-- 1. BRANDING (Top Left on Mobile, Left on Desktop) -->
+                <div class="flex items-center gap-3 order-1 shrink-0">
+                    <!-- Adjusted height to accommodate wide logos properly -->
+                    <img id="site-logo" src="" class="h-10 md:h-12 w-auto hidden object-contain" alt="Logo">
+                    <span id="site-header-text" class="font-extrabold text-lg md:text-xl tracking-tight text-slate-900 truncate max-w-[130px] sm:max-w-none">SSF Trust</span>
+                </div>
+
+                <!-- 2. SHARE BUTTON (Top Right on Mobile, Right on Desktop) -->
+                <div class="order-2 sm:order-3 shrink-0 ml-auto sm:ml-0">
+                    <button onclick="document.getElementById('share-modal').classList.remove('hidden')" class="text-sm font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-4 py-2 rounded-full transition-colors flex items-center gap-2 shadow-sm border border-emerald-200/50">
+                        <i data-lucide="share-2" class="w-4 h-4"></i> Share
+                    </button>
+                </div>
+
+                <!-- 3. NAVIGATION TABS (Bottom full-width on Mobile, Center on Desktop) -->
+                <nav class="order-3 sm:order-2 w-full sm:w-auto flex items-center justify-start sm:justify-center gap-6 border-t sm:border-t-0 border-slate-200/50 pt-3 sm:pt-0">
+                    <button onclick="switchTab('campaign')" id="nav-campaign" class="text-sm md:text-base font-bold border-b-2 border-emerald-500 text-emerald-700 pb-1.5 transition-colors whitespace-nowrap">Campaign</button>
+                    <button onclick="switchTab('my-txns')" id="nav-mytxns" class="text-sm md:text-base font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 pb-1.5 transition-colors whitespace-nowrap">My Transactions</button>
+                </nav>
+
+            </div>
         </div>
     </header>
     
