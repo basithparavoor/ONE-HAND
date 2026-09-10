@@ -489,47 +489,66 @@ document.getElementById('donation-form')?.addEventListener('submit', (e) => {
     };
 
     const upiId = campaignData.upi_id;
-    
-    // 1. Properly URL-encode the name to prevent any hidden character crashes
     const payeeName = encodeURIComponent(campaignData.campaign_title);
-    
-    // 2. Add a Transaction Note (crucial for bypassing bank declines on intents)
     const txnNote = encodeURIComponent("Campaign Donation");
     
-    // 3. Build the core query string with the added '&tn=' parameter
+    // Core UPI String
     const upiQuery = `pa=${upiId}&pn=${payeeName}&am=${finalAmount}&cu=INR&tn=${txnNote}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent('upi://pay?' + upiQuery)}`;
     
     document.getElementById('pay-amount-display').textContent = formatMoney(finalAmount);
-    
-    // 4. Assign the perfectly formatted strings to the QR and Buttons
-    document.getElementById('dynamic-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent('upi://pay?' + upiQuery)}`;
-    document.getElementById('btn-gpay').href = `gpay://upi/pay?${upiQuery}`;
-    document.getElementById('btn-phonepe').href = `phonepe://pay?${upiQuery}`;
+    document.getElementById('dynamic-qr').src = qrUrl;
 
-    // NEW: Display and Copy UPI ID Logic
-    const displayUpi = document.getElementById('display-upi-id');
-    if (displayUpi) displayUpi.textContent = upiId;
+    // Display and Copy UPI ID Logic
+    document.getElementById('display-upi-id').textContent = upiId;
     
     const copyBtn = document.getElementById('btn-copy-upi');
     if (copyBtn) {
-        // Remove old listeners to prevent multiple firing
         const newCopyBtn = copyBtn.cloneNode(true);
         copyBtn.parentNode.replaceChild(newCopyBtn, copyBtn);
-        
         newCopyBtn.addEventListener('click', (e) => {
             e.preventDefault();
             navigator.clipboard.writeText(upiId).then(() => {
                 const originalHtml = newCopyBtn.innerHTML;
-                newCopyBtn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Copied!';
-                newCopyBtn.classList.replace('text-emerald-600', 'text-slate-900');
+                newCopyBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> <span class="text-emerald-700">Copied!</span>';
+                newCopyBtn.classList.replace('border-slate-200', 'border-emerald-300');
                 if (typeof lucide !== 'undefined') lucide.createIcons();
                 
                 setTimeout(() => {
                     newCopyBtn.innerHTML = originalHtml;
-                    newCopyBtn.classList.replace('text-slate-900', 'text-emerald-600');
+                    newCopyBtn.classList.replace('border-emerald-300', 'border-slate-200');
                     if (typeof lucide !== 'undefined') lucide.createIcons();
                 }, 2000);
             });
+        });
+    }
+
+    // Download QR Code Logic
+    const dlBtn = document.getElementById('btn-download-qr');
+    if (dlBtn) {
+        const newDlBtn = dlBtn.cloneNode(true);
+        dlBtn.parentNode.replaceChild(newDlBtn, dlBtn);
+        newDlBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(qrUrl);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'SSF_Donation_QR.png';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                const originalHtml = newDlBtn.innerHTML;
+                newDlBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> <span class="text-emerald-700">Saved!</span>';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                setTimeout(() => { newDlBtn.innerHTML = originalHtml; if (typeof lucide !== 'undefined') lucide.createIcons(); }, 2000);
+            } catch (err) {
+                console.error("Failed to download QR", err);
+            }
         });
     }
 
